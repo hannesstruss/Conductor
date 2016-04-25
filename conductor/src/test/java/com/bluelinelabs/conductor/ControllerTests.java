@@ -268,6 +268,47 @@ public class ControllerTests {
         assertCalls(parentExpectedCallState, parent);
     }
 
+    @Test
+    public void testAddRemoveChildren() {
+        TestController parent = new TestController();
+        TestController child1 = new TestController();
+        TestController child2 = new TestController();
+
+        mRouter.pushController(RouterTransaction.builder(parent).build());
+
+        Assert.assertEquals(0, parent.getChildControllers().size());
+        Assert.assertNull(child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+
+        parent.addChildController(ChildControllerTransaction.builder(child1, TestController.VIEW_ID).build());
+
+        Assert.assertEquals(1, parent.getChildControllers().size());
+        Assert.assertEquals(child1, parent.getChildControllers().get(0));
+        Assert.assertEquals(parent, child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+
+        parent.addChildController(ChildControllerTransaction.builder(child2, TestController.VIEW_ID).build());
+
+        Assert.assertEquals(2, parent.getChildControllers().size());
+        Assert.assertEquals(child1, parent.getChildControllers().get(0));
+        Assert.assertEquals(child2, parent.getChildControllers().get(1));
+        Assert.assertEquals(parent, child1.getParentController());
+        Assert.assertEquals(parent, child2.getParentController());
+
+        parent.removeChildController(child2);
+
+        Assert.assertEquals(1, parent.getChildControllers().size());
+        Assert.assertEquals(child1, parent.getChildControllers().get(0));
+        Assert.assertEquals(parent, child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+
+        parent.removeChildController(child1);
+
+        Assert.assertEquals(0, parent.getChildControllers().size());
+        Assert.assertNull(child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+    }
+
     private void assertCalls(CallState callState, TestController controller) {
         Assert.assertEquals("Expected call counts and controller call counts do not match.", callState, controller.currentCallState);
     }
