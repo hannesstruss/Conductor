@@ -22,7 +22,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bluelinelabs.conductor.ChildControllerTransaction;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.RouterTransaction;
@@ -56,6 +55,7 @@ public class HomeController extends BaseController {
     }
 
     @Bind(R.id.recycler_view) RecyclerView mRecyclerView;
+    @Bind(R.id.home_root) ViewGroup mRootView;
 
     public HomeController() {
         setHasOptionsMenu(true);
@@ -113,11 +113,11 @@ public class HomeController extends BaseController {
             content.append("\n\n");
             content.append(link);
 
-            addChildController(ChildControllerTransaction.builder(new OverlayController(content), R.id.home_root)
-                    .pushChangeHandler(new FadeChangeHandler())
-                    .popChangeHandler(new FadeChangeHandler())
-                    .addToLocalBackstack(true)
-                    .build());
+            //TODO: this isn't in the local backstack AND won't fade out
+            getChildRouter(mRootView, null)
+                    .setPopLastView(true)
+                    .setRoot(new OverlayController(content), new FadeChangeHandler());
+
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -159,11 +159,10 @@ public class HomeController extends BaseController {
                         .build());
                 break;
             case OVERLAY:
-                addChildController(ChildControllerTransaction.builder(new OverlayController("I'm an Overlay!"), R.id.home_root)
-                        .pushChangeHandler(new FadeChangeHandler())
-                        .popChangeHandler(new FadeChangeHandler())
-                        .addToLocalBackstack(true)
-                        .build());
+                //TODO: this isn't in the local backstack AND won't fade out
+                getChildRouter(mRootView, null)
+                        .setPopLastView(true)
+                        .setRoot(new OverlayController("I'm an Overlay!"), new FadeChangeHandler());
                 break;
             case DRAG_DISMISS:
                 getRouter().pushController(RouterTransaction.builder(new DragDismissController())

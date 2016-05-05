@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import com.bluelinelabs.conductor.Controller.LifecycleListener;
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
 import com.bluelinelabs.conductor.changehandler.SimpleSwapChangeHandler;
-import com.bluelinelabs.conductor.internal.LifecycleHandler;
 import com.bluelinelabs.conductor.internal.NoOpControllerChangeHandler;
 
 import java.util.ArrayList;
@@ -25,20 +24,20 @@ import java.util.List;
  * to Activity/containing ViewGroup pairs. Routers do not directly render or push Views to the container ViewGroup,
  * but instead defer this responsibility to the {@link ControllerChangeHandler} specified in a given transaction.
  */
-public class Router {
+public abstract class Router {
 
     private final Backstack mBackStack = new Backstack();
-    private LifecycleHandler mLifecycleHandler;
-    private ViewGroup mContainer;
     private final List<ControllerChangeListener> mChangeListeners = new ArrayList<>();
     private final List<Controller> mDestroyingControllers = new ArrayList<>();
+
+    private boolean mPopLastView;
+
+    ViewGroup mContainer;
 
     /**
      * Returns this Router's host Activity
      */
-    public Activity getActivity() {
-        return mLifecycleHandler != null ? mLifecycleHandler.getLifecycleActivity() : null;
-    }
+    public abstract Activity getActivity();
 
     /**
      * This should be called by the host Activity when its onActivityResult method is called if the instanceId
@@ -48,9 +47,7 @@ public class Router {
      * @param resultCode The Activity's onActivityResult resultCode
      * @param data The Activity's onActivityResult data
      */
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        getLifecycleHandler().onActivityResult(requestCode, resultCode, data);
-    }
+    public abstract void onActivityResult(int requestCode, int resultCode, Intent data);
 
     /**
      * This should be called by the host Activity when its onRequestPermissionsResult method is called. The call will be forwarded
@@ -118,7 +115,11 @@ public class Router {
             performControllerChange(mBackStack.peek(), topController, false);
         }
 
-        return !mBackStack.isEmpty();
+        if (mPopLastView) {
+            return topController != null;
+        } else {
+            return !mBackStack.isEmpty();
+        }
     }
 
     /**
@@ -147,6 +148,17 @@ public class Router {
 
         pushToBackstack(transaction);
         performControllerChange(transaction, topTransaction, true);
+    }
+
+    void destroy() {
+        trackDestroyingControllers(mBackStack.popAll());
+        // TODO: this needs to remove the last view
+    }
+
+    //TODO: this needs a better name and some docs
+    public Router setPopLastView(boolean popLastView) {
+        mPopLastView = popLastView;
+        return this;
     }
 
     /**
@@ -271,13 +283,9 @@ public class Router {
      */
     public Controller getControllerWithInstanceId(String instanceId) {
         for (ControllerTransaction transaction : mBackStack) {
-            if (transaction.controller.getInstanceId().equals(instanceId)) {
-                return transaction.controller;
-            } else {
-                Controller childWithId = transaction.controller.getChildControllerWithInstanceId(instanceId);
-                if (childWithId != null) {
-                    return childWithId;
-                }
+            Controller controllerWithId = transaction.controller.findController(instanceId);
+            if (controllerWithId != null) {
+                return controllerWithId;
             }
         }
         return null;
@@ -356,52 +364,71 @@ public class Router {
     public final void onActivityStarted(Activity activity) {
         for (RouterTransaction transaction : mBackStack) {
             transaction.controller.activityStarted(activity);
+
+            for (Router childRouter : transaction.controller.getChildRouters()) {
+                childRouter.onActivityStarted(activity);
+            }
         }
     }
 
     public final void onActivityResumed(Activity activity) {
         for (RouterTransaction transaction : mBackStack) {
             transaction.controller.activityResumed(activity);
+
+            for (Router childRouter : transaction.controller.getChildRouters()) {
+                childRouter.onActivityResumed(activity);
+            }
         }
     }
 
     public final void onActivityPaused(Activity activity) {
         for (RouterTransaction transaction : mBackStack) {
             transaction.controller.activityPaused(activity);
+
+            for (Router childRouter : transaction.controller.getChildRouters()) {
+                childRouter.onActivityPaused(activity);
+            }
         }
     }
 
     public final void onActivityStopped(Activity activity) {
         for (RouterTransaction transaction : mBackStack) {
             transaction.controller.activityStopped(activity);
+
+            for (Router childRouter : transaction.controller.getChildRouters()) {
+                childRouter.onActivityStopped(activity);
+            }
         }
     }
 
     public final void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        for (RouterTransaction transaction : mBackStack) {
-            transaction.controller.prepareForActivityPause();
-        }
-
-        mBackStack.detachAndSaveInstanceState(outState);
+        saveInstanceState(outState);
     }
 
-    public final void onActivityDestroyed(Activity activity) {
+    public void onActivityDestroyed(Activity activity) {
         mContainer.setOnHierarchyChangeListener(null);
         mChangeListeners.clear();
 
         for (RouterTransaction transaction : mBackStack) {
             transaction.controller.activityDestroyed(activity.isChangingConfigurations());
+
+            for (Router childRouter : transaction.controller.getChildRouters()) {
+                childRouter.onActivityDestroyed(activity);
+            }
         }
 
         for (Controller controller : mDestroyingControllers) {
             controller.activityDestroyed(activity.isChangingConfigurations());
+
+            for (Router childRouter : controller.getChildRouters()) {
+                childRouter.onActivityDestroyed(activity);
+            }
         }
 
-        mLifecycleHandler = null;
         mContainer = null;
     }
 
-    public final void onRestoreInstanceState(Bundle savedInstanceState) {
+    public void restoreInstanceState(Bundle savedInstanceState) {
         mBackStack.restoreInstanceState(savedInstanceState);
 
         Iterator<RouterTransaction> backstackIterator = mBackStack.reverseIterator();
@@ -413,12 +440,20 @@ public class Router {
     public final void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         for (RouterTransaction transaction : mBackStack) {
             transaction.controller.createOptionsMenu(menu, inflater);
+
+            for (Router childRouter : transaction.controller.getChildRouters()) {
+                childRouter.onCreateOptionsMenu(menu, inflater);
+            }
         }
     }
 
     public final void onPrepareOptionsMenu(Menu menu) {
         for (RouterTransaction transaction : mBackStack) {
             transaction.controller.prepareOptionsMenu(menu);
+
+            for (Router childRouter : transaction.controller.getChildRouters()) {
+                childRouter.onPrepareOptionsMenu(menu);
+            }
         }
     }
 
@@ -427,14 +462,14 @@ public class Router {
             if (transaction.controller.optionsItemSelected(item)) {
                 return true;
             }
+
+            for (Router childRouter : transaction.controller.getChildRouters()) {
+                if (childRouter.onOptionsItemSelected(item)) {
+                    return true;
+                }
+            }
         }
         return false;
-    }
-
-    final void invalidateOptionsMenu() {
-        if (mLifecycleHandler != null) {
-            mLifecycleHandler.getFragmentManager().invalidateOptionsMenu();
-        }
     }
 
     private void popToTransaction(@NonNull RouterTransaction transaction, ControllerChangeHandler changeHandler) {
@@ -451,23 +486,23 @@ public class Router {
         }
     }
 
-    public final void setHost(@NonNull LifecycleHandler lifecycleHandler, @NonNull ViewGroup container) {
-        if (mLifecycleHandler != lifecycleHandler || mContainer != container) {
-            if (mContainer != null && mContainer instanceof ControllerChangeListener) {
-                removeChangeListener((ControllerChangeListener)mContainer);
-            }
+    final List<Controller> getControllers() {
+        List<Controller> controllers = new ArrayList<>();
 
-            if (container instanceof ControllerChangeListener) {
-                addChangeListener((ControllerChangeListener)container);
-            }
-
-            mLifecycleHandler = lifecycleHandler;
-            mContainer = container;
+        Iterator<RouterTransaction> backstackIterator = mBackStack.reverseIterator();
+        while (backstackIterator.hasNext()) {
+            controllers.add(backstackIterator.next().controller);
         }
+
+        return controllers;
     }
 
-    final LifecycleHandler getLifecycleHandler() {
-        return mLifecycleHandler;
+    void saveInstanceState(Bundle outState) {
+        for (RouterTransaction transaction : mBackStack) {
+            transaction.controller.prepareForActivityPause();
+        }
+
+        mBackStack.detachAndSaveInstanceState(outState);
     }
 
     public final Boolean handleRequestedPermission(@NonNull String permission) {
@@ -499,7 +534,7 @@ public class Router {
     private void performControllerChange(final Controller to, final Controller from, boolean isPush, @NonNull ControllerChangeHandler changeHandler) {
         if (to != null) {
             to.setRouter(this);
-        } else if (mBackStack.size() == 0) {
+        } else if (mBackStack.size() == 0 && !mPopLastView) {
             // We're emptying out the backstack. Views get weird if you transition them out, so just no-op it. The hosting
             // Activity should be handling this by finishing or at least hiding this view.
             changeHandler = new NoOpControllerChangeHandler();
@@ -534,4 +569,12 @@ public class Router {
         }
     }
 
+    abstract void invalidateOptionsMenu();
+    abstract void startActivity(Intent intent);
+    abstract void startActivityForResult(String instanceId, Intent intent, int requestCode);
+    abstract void startActivityForResult(String instanceId, Intent intent, int requestCode, Bundle options);
+    abstract void registerForActivityResult(String instanceId, int requestCode);
+    abstract void unregisterForActivityResults(String instanceId);
+    abstract void requestPermissions(String instanceId, String[] permissions, int requestCode);
+    abstract boolean hasHost();
 }

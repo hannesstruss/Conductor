@@ -14,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 
+import com.bluelinelabs.conductor.ActivityHostedRouter;
 import com.bluelinelabs.conductor.Router;
 
 import java.util.HashMap;
@@ -32,7 +33,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     private SparseArray<String> mPermissionRequestMap = new SparseArray<>();
     private SparseArray<String> mActivityRequestMap = new SparseArray<>();
 
-    private final Map<Integer, Router> mRouterMap = new HashMap<>();
+    private final Map<Integer, ActivityHostedRouter> mRouterMap = new HashMap<>();
 
     public LifecycleHandler() {
         setRetainInstance(true);
@@ -58,13 +59,13 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     public Router getRouter(ViewGroup container, Bundle savedInstanceState) {
-        Router router = mRouterMap.get(getRouterHashKey(container));
+        ActivityHostedRouter router = mRouterMap.get(getRouterHashKey(container));
         if (router == null) {
-            router = new Router();
+            router = new ActivityHostedRouter();
             router.setHost(this, container);
 
             if (savedInstanceState != null) {
-                router.onRestoreInstanceState(savedInstanceState);
+                router.restoreInstanceState(savedInstanceState);
             }
             mRouterMap.put(getRouterHashKey(container), router);
         } else {
@@ -191,11 +192,11 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         return super.onOptionsItemSelected(item);
     }
 
-    public void registerForActivityRequest(String instanceId, int requestCode) {
+    public void registerForActivityResult(String instanceId, int requestCode) {
         mActivityRequestMap.put(requestCode, instanceId);
     }
 
-    public void unregisterForActivityRequests(String instanceId) {
+    public void unregisterForActivityResults(String instanceId) {
         for (int i = mActivityRequestMap.size() - 1; i >= 0; i--) {
             if (instanceId.equals(mActivityRequestMap.get(mActivityRequestMap.keyAt(i)))) {
                 mActivityRequestMap.removeAt(i);
@@ -204,12 +205,12 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     public void startActivityForResult(String instanceId, Intent intent, int requestCode) {
-        registerForActivityRequest(instanceId, requestCode);
+        registerForActivityResult(instanceId, requestCode);
         startActivityForResult(intent, requestCode);
     }
 
     public void startActivityForResult(String instanceId, Intent intent, int requestCode, Bundle options) {
-        registerForActivityRequest(instanceId, requestCode);
+        registerForActivityResult(instanceId, requestCode);
         startActivityForResult(intent, requestCode, options);
     }
 
