@@ -476,8 +476,9 @@ public abstract class Controller {
      * @return True if this Controller has consumed the back button press, otherwise false
      */
     public boolean handleBack() {
-        for (Router childRouter : mChildRouters) {
-            if (childRouter.handleBack()) {
+        //TODO: needs to route this event to the top-most controller first, regardless of which router it's hosted in
+        for (int index = mChildRouters.size() - 1; index >= 0; index--) {
+            if (mChildRouters.get(index).handleBack()) {
                 return true;
             }
         }

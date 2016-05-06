@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.Router;
-import com.bluelinelabs.conductor.changehandler.SimpleSwapChangeHandler;
+import com.bluelinelabs.conductor.RouterTransaction;
 
 /**
  * An adapter for ViewPagers that will handle adding and removing Controllers
@@ -33,7 +33,9 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
 
         Router router = mHost.getChildRouter(container, name);
         if (!router.hasRootController()) {
-            router.setRoot(getItem(position), name, new SimpleSwapChangeHandler());
+            router.setRoot(RouterTransaction.builder(getItem(position))
+                    .tag(name)
+                    .build());
         }
 
         return router.getControllerWithTag(name);

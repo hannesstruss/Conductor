@@ -79,7 +79,7 @@ public class HomeController extends BaseController {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-       inflater.inflate(R.menu.home, menu);
+        inflater.inflate(R.menu.home, menu);
     }
 
     @Override
@@ -116,7 +116,10 @@ public class HomeController extends BaseController {
             //TODO: this isn't in the local backstack AND won't fade out
             getChildRouter(mRootView, null)
                     .setPopLastView(true)
-                    .setRoot(new OverlayController(content), new FadeChangeHandler());
+                    .setRoot(RouterTransaction.builder(new OverlayController(content))
+                            .pushChangeHandler(new FadeChangeHandler())
+                            .popChangeHandler(new FadeChangeHandler())
+                            .build());
 
             return true;
         }
@@ -162,7 +165,10 @@ public class HomeController extends BaseController {
                 //TODO: this isn't in the local backstack AND won't fade out
                 getChildRouter(mRootView, null)
                         .setPopLastView(true)
-                        .setRoot(new OverlayController("I'm an Overlay!"), new FadeChangeHandler());
+                        .setRoot(RouterTransaction.builder(new OverlayController("I'm an Overlay!"))
+                                .pushChangeHandler(new FadeChangeHandler())
+                                .popChangeHandler(new FadeChangeHandler())
+                                .build());
                 break;
             case DRAG_DISMISS:
                 getRouter().pushController(RouterTransaction.builder(new DragDismissController())

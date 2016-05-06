@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.Conductor;
 import com.bluelinelabs.conductor.Router;
+import com.bluelinelabs.conductor.RouterTransaction;
 import com.bluelinelabs.conductor.demo.controllers.HomeController;
 
 import butterknife.Bind;
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements ActionBarProvider
 
         mRouter = Conductor.attachRouter(this, mContainer, savedInstanceState);
         if (!mRouter.hasRootController()) {
-            mRouter.setRoot(new HomeController());
+            mRouter.setRoot(RouterTransaction.builder(new HomeController()).build());
         }
     }
 

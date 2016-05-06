@@ -10,6 +10,7 @@ import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.Router;
+import com.bluelinelabs.conductor.RouterTransaction;
 import com.bluelinelabs.conductor.changehandler.FadeChangeHandler;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
@@ -59,7 +60,10 @@ public class ParentController extends BaseController {
                 }
             });
 
-            childRouter.setRoot(childController, new FadeChangeHandler());
+            childRouter.setRoot(RouterTransaction.builder(childController)
+                    .pushChangeHandler(new FadeChangeHandler())
+                    .popChangeHandler(new FadeChangeHandler())
+                    .build());
         }
     }
 
@@ -67,14 +71,14 @@ public class ParentController extends BaseController {
         removeChildRouter(getChildRouters().get(index));
     }
 
-    @Override
-    public boolean handleBack() {
-        if (getChildRouters().size() == NUMBER_OF_CHILDREN && !mFinishing) {
-            mFinishing = true;
-            removeChild(getChildRouters().size() - 1);
-        }
-        return true;
-    }
+//    @Override
+//    public boolean handleBack() {
+//        if (getChildRouters().size() == NUMBER_OF_CHILDREN && !mFinishing) {
+//            mFinishing = true;
+//            removeChild(getChildRouters().size() - 1);
+//        }
+//        return true;
+//    }
 
     @Override
     protected String getTitle() {

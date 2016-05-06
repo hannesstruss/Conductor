@@ -213,42 +213,12 @@ public abstract class Router {
     }
 
     /**
-     * Sets the root {@link Controller}. If any {@link Controller}s are currently in the backstack, they will be removed.
-     *
-     * @param controller The new root {@link Controller}
-     */
-    public void setRoot(@NonNull Controller controller) {
-        setRoot(controller, null, null);
-    }
-
-    /**
-     * Sets the root {@link Controller}. If any {@link Controller}s are currently in the backstack, they will be removed.
-     *
-     * @param controller The new root {@link Controller}
-     * @param tag The tag to use for this {@link Controller}
-     */
-    public void setRoot(@NonNull Controller controller, String tag) {
-        setRoot(controller, tag, null);
-    }
-
-    /**
-     * Sets the root {@link Controller}. If any {@link Controller}s are currently in the backstack, they will be removed.
-     *
-     * @param controller The new root {@link Controller}
-     * @param changeHandler The {@link ControllerChangeHandler} to use for setting the root
-     */
-    public void setRoot(@NonNull Controller controller, ControllerChangeHandler changeHandler) {
-        setRoot(controller, null, changeHandler);
-    }
-
-    /**
      * Sets the root Controller. If any {@link Controller}s are currently in the backstack, they will be removed.
      *
-     * @param controller The new root {@link Controller}
-     * @param tag The tag to use for this {@link Controller}
-     * @param changeHandler The {@link ControllerChangeHandler} to use for setting the root
+     * @param transaction The transaction detailing what should be pushed, including the {@link Controller},
+     *                    and its push and pop {@link ControllerChangeHandler}, and its tag.
      */
-    public void setRoot(@NonNull Controller controller, String tag, ControllerChangeHandler changeHandler) {
+    public void setRoot(@NonNull RouterTransaction transaction) {
         RouterTransaction currentTop = mBackStack.peek();
 
         if (currentTop != null && currentTop.controller.getView() != null) {
@@ -264,12 +234,6 @@ public abstract class Router {
         }
 
         trackDestroyingControllers(mBackStack.popAll());
-
-        RouterTransaction transaction = RouterTransaction.builder(controller)
-                .tag(tag)
-                .pushChangeHandler(changeHandler != null ? changeHandler : new SimpleSwapChangeHandler())
-                .popChangeHandler(new SimpleSwapChangeHandler())
-                .build();
 
         pushToBackstack(transaction);
         performControllerChange(transaction, currentTop, true);
@@ -417,7 +381,8 @@ public abstract class Router {
             }
         }
 
-        for (Controller controller : mDestroyingControllers) {
+        for (int index = mDestroyingControllers.size() - 1; index >= 0; index--) {
+            Controller controller = mDestroyingControllers.get(index);
             controller.activityDestroyed(activity.isChangingConfigurations());
 
             for (Router childRouter : controller.getChildRouters()) {
