@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -15,7 +16,9 @@ import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListen
 import com.bluelinelabs.conductor.changehandler.SimpleSwapChangeHandler;
 import com.bluelinelabs.conductor.internal.NoOpControllerChangeHandler;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,6 +30,7 @@ import java.util.List;
 public abstract class Router {
 
     private final Backstack mBackStack = new Backstack();
+    private final Deque<Controller> mChildBackstack = new ArrayDeque<>();
     private final List<ControllerChangeListener> mChangeListeners = new ArrayList<>();
     private final List<Controller> mDestroyingControllers = new ArrayList<>();
 
@@ -70,6 +74,16 @@ public abstract class Router {
      * to its top {@link Controller}. If that controller doesn't handle it, then it will be popped.
      */
     public boolean handleBack() {
+        //TODO: this should probably not even pop a controller when back is pressed if the flag isn't set?
+
+        Iterator<Controller> backstackIterator = mChildBackstack.descendingIterator();
+        while (backstackIterator.hasNext()) {
+            Controller childController = backstackIterator.next();
+            if (childController.isAttached() && childController.getRouter().handleBack()) {
+                return true;
+            }
+        }
+
         if (!mBackStack.isEmpty()) {
             if (mBackStack.peek().controller.handleBack()) {
                 return true;
@@ -151,7 +165,14 @@ public abstract class Router {
     }
 
     void destroy() {
-        trackDestroyingControllers(mBackStack.popAll());
+        List<RouterTransaction> poppedControllers = mBackStack.popAll();
+
+        if (poppedControllers.size() > 0) {
+            trackDestroyingControllers(poppedControllers);
+
+            performControllerChange(null, poppedControllers.get(0).controller, false, poppedControllers.get(0).getPopControllerChangeHandler());
+        }
+
         // TODO: this needs to remove the last view
     }
 
@@ -365,10 +386,6 @@ public abstract class Router {
         }
     }
 
-    public final void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        saveInstanceState(outState);
-    }
-
     public void onActivityDestroyed(Activity activity) {
         mContainer.setOnHierarchyChangeListener(null);
         mChangeListeners.clear();
@@ -393,12 +410,20 @@ public abstract class Router {
         mContainer = null;
     }
 
+    public void saveInstanceState(Bundle outState) {
+        for (RouterTransaction transaction : mBackStack) {
+            transaction.controller.prepareForActivityPause();
+        }
+
+        mBackStack.saveInstanceState(outState);
+    }
+
     public void restoreInstanceState(Bundle savedInstanceState) {
         mBackStack.restoreInstanceState(savedInstanceState);
 
         Iterator<RouterTransaction> backstackIterator = mBackStack.reverseIterator();
         while (backstackIterator.hasNext()) {
-            backstackIterator.next().controller.setRouter(this);
+            setControllerRouter(backstackIterator.next().controller);
         }
     }
 
@@ -462,14 +487,6 @@ public abstract class Router {
         return controllers;
     }
 
-    void saveInstanceState(Bundle outState) {
-        for (RouterTransaction transaction : mBackStack) {
-            transaction.controller.prepareForActivityPause();
-        }
-
-        mBackStack.detachAndSaveInstanceState(outState);
-    }
-
     public final Boolean handleRequestedPermission(@NonNull String permission) {
         for (ControllerTransaction transaction : mBackStack) {
             if (transaction.controller.didRequestPermission(permission)) {
@@ -497,8 +514,11 @@ public abstract class Router {
     }
 
     private void performControllerChange(final Controller to, final Controller from, boolean isPush, @NonNull ControllerChangeHandler changeHandler) {
+
+        Log.d("KUCK", "popLast? " + mPopLastView);
+
         if (to != null) {
-            to.setRouter(this);
+            setControllerRouter(to);
         } else if (mBackStack.size() == 0 && !mPopLastView) {
             // We're emptying out the backstack. Views get weird if you transition them out, so just no-op it. The hosting
             // Activity should be handling this by finishing or at least hiding this view.
@@ -508,10 +528,9 @@ public abstract class Router {
         if (mContainer != null) {
             ControllerChangeHandler.executeChange(to, from, isPush, mContainer, changeHandler, mChangeListeners);
         }
-
     }
 
-    private void pushToBackstack(@NonNull RouterTransaction entry) {
+    void pushToBackstack(@NonNull RouterTransaction entry) {
         mBackStack.push(entry);
     }
 
@@ -532,6 +551,21 @@ public abstract class Router {
         for (RouterTransaction transaction : transactions) {
             trackDestroyingController(transaction);
         }
+    }
+
+    void onChildControllerPushed(Controller controller) {
+        Log.d("KUCK", "onChildPushed: " + controller.getClass().getSimpleName() + "; this = " + this.getClass().getSimpleName());
+        mChildBackstack.add(controller);
+        controller.addLifecycleListener(new LifecycleListener() {
+            @Override
+            public void preDestroy(@NonNull Controller controller) {
+                mChildBackstack.remove(controller);
+            }
+        });
+    }
+
+    void setControllerRouter(Controller controller) {
+        controller.setRouter(this);
     }
 
     abstract void invalidateOptionsMenu();

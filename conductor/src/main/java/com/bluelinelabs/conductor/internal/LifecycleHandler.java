@@ -267,7 +267,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
         if (mActivity == activity) {
             for (Router router : mRouterMap.values()) {
-                router.onActivitySaveInstanceState(activity, outState);
+                router.saveInstanceState(outState);
             }
         }
     }

@@ -38,12 +38,13 @@ public class HomeController extends BaseController {
     public enum HomeDemoModel {
         NAVIGATION("Navigation Demos", R.color.red_300),
         TRANSITIONS("Transition Demos", R.color.blue_grey_300),
-        OVERLAY("Overlay Controller", R.color.purple_300),
         CHILD_CONTROLLERS("Child Controllers", R.color.orange_300),
         VIEW_PAGER("ViewPager", R.color.green_300),
         TARGET_CONTROLLER("Target Controller", R.color.pink_300),
+        BOTTOM_BAR("Bottom Bar", R.color.deep_orange_300),
         DRAG_DISMISS("Drag Dismiss", R.color.lime_300),
-        RX_LIFECYCLE("Rx Lifecycle", R.color.teal_300);
+        RX_LIFECYCLE("Rx Lifecycle", R.color.teal_300),
+        OVERLAY("Overlay Controller", R.color.purple_300);
 
         String title;
         @ColorRes int color;
@@ -79,7 +80,7 @@ public class HomeController extends BaseController {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.home, menu);
+       inflater.inflate(R.menu.home, menu);
     }
 
     @Override
@@ -113,14 +114,12 @@ public class HomeController extends BaseController {
             content.append("\n\n");
             content.append(link);
 
-            //TODO: this isn't in the local backstack AND won't fade out
             getChildRouter(mRootView, null)
                     .setPopLastView(true)
                     .setRoot(RouterTransaction.builder(new OverlayController(content))
                             .pushChangeHandler(new FadeChangeHandler())
                             .popChangeHandler(new FadeChangeHandler())
                             .build());
-
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -162,10 +161,9 @@ public class HomeController extends BaseController {
                         .build());
                 break;
             case OVERLAY:
-                //TODO: this isn't in the local backstack AND won't fade out
                 getChildRouter(mRootView, null)
                         .setPopLastView(true)
-                        .setRoot(RouterTransaction.builder(new OverlayController("I'm an Overlay!"))
+                        .setRoot(RouterTransaction.builder(new OverlayController("I'm an overlay!"))
                                 .pushChangeHandler(new FadeChangeHandler())
                                 .popChangeHandler(new FadeChangeHandler())
                                 .build());
@@ -178,6 +176,12 @@ public class HomeController extends BaseController {
                 break;
             case RX_LIFECYCLE:
                 getRouter().pushController(RouterTransaction.builder(new RxLifecycleController())
+                        .pushChangeHandler(new FadeChangeHandler())
+                        .popChangeHandler(new FadeChangeHandler())
+                        .build());
+                break;
+            case BOTTOM_BAR:
+                getRouter().pushController(RouterTransaction.builder(new BottomNavigationParentController())
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler())
                         .build());

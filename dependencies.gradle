@@ -14,6 +14,8 @@ ext {
     leakCanary = 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     leakCanaryNoOp = 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
 
+    bottomNav = 'com.aurelhubert:ahbottomnavigation:1.1.8'
+
     rxJava = 'io.reactivex:rxjava:1.1.0'
     rxAndroid = 'io.reactivex:rxandroid:1.1.0'
     rxLifecycle = 'com.trello:rxlifecycle:0.5.0'

@@ -108,6 +108,14 @@ public class ControllerHostedRouter extends Router {
     }
 
     @Override
+    public void saveInstanceState(Bundle outState) {
+        super.saveInstanceState(outState);
+
+        outState.putInt(KEY_HOST_ID, mHostId);
+        outState.putString(KEY_TAG, mTag);
+    }
+
+    @Override
     public void restoreInstanceState(Bundle savedInstanceState) {
         super.restoreInstanceState(savedInstanceState);
 
@@ -116,11 +124,25 @@ public class ControllerHostedRouter extends Router {
     }
 
     @Override
-    void saveInstanceState(Bundle outState) {
-        super.saveInstanceState(outState);
+    void setControllerRouter(Controller controller) {
+        super.setControllerRouter(controller);
+        controller.setParentController(mHostController);
 
-        outState.putInt(KEY_HOST_ID, mHostId);
-        outState.putString(KEY_TAG, mTag);
+        //TODO: maybe monitor the lifecycle here? how does it get to the global backstack though?
+    }
+
+    @Override
+    void pushToBackstack(@NonNull RouterTransaction entry) {
+        super.pushToBackstack(entry);
+
+        mHostController.getRouter().onChildControllerPushed(entry.controller);
+    }
+
+    @Override
+    void onChildControllerPushed(Controller controller) {
+        super.onChildControllerPushed(controller);
+
+        mHostController.getRouter().onChildControllerPushed(controller);
     }
 
     public int getHostId() {

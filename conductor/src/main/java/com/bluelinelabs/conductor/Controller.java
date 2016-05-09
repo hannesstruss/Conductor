@@ -11,6 +11,7 @@ import android.os.Parcelable;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,14 +21,17 @@ import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewGroup;
 
+import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
 import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.internal.ClassUtils;
 import com.bluelinelabs.conductor.internal.RouterRequiringFunc;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 
 /**
@@ -72,10 +76,12 @@ public abstract class Controller {
     private ControllerChangeHandler mOverriddenPushHandler;
     private ControllerChangeHandler mOverriddenPopHandler;
     private RetainViewMode mRetainViewMode = RetainViewMode.RELEASE_DETACH;
+    private OnAttachStateChangeListener mOnAttachStateChangeListener;
     private final List<ControllerHostedRouter> mChildRouters = new ArrayList<>();
     private final List<LifecycleListener> mLifecycleListeners = new ArrayList<>();
     private final ArrayList<String> mRequestedPermissions = new ArrayList<>();
     private final ArrayList<RouterRequiringFunc> mOnRouterSetListeners = new ArrayList<>();
+    private final Queue<Controller> mChildBackstack = new ArrayDeque<>();
 
     static Controller newInstance(Bundle bundle) {
         final String className = bundle.getString(KEY_CLASS_NAME);
@@ -157,6 +163,7 @@ public abstract class Controller {
 
         if (childRouter == null) {
             childRouter = new ControllerHostedRouter(container.getId(), tag);
+            monitorChildRouter(childRouter);
             childRouter.setHost(this, container);
             mChildRouters.add(childRouter);
         } else if (!childRouter.hasHost()) {
@@ -259,6 +266,9 @@ public abstract class Controller {
         return null;
     }
 
+    /**
+     * Returns all of this Controller's child Routers
+     */
     public final List<Router> getChildRouters() {
         List<Router> routers = new ArrayList<>();
         for (Router router : mChildRouters) {
@@ -476,9 +486,9 @@ public abstract class Controller {
      * @return True if this Controller has consumed the back button press, otherwise false
      */
     public boolean handleBack() {
-        //TODO: needs to route this event to the top-most controller first, regardless of which router it's hosted in
-        for (int index = mChildRouters.size() - 1; index >= 0; index--) {
-            if (mChildRouters.get(index).handleBack()) {
+        for (Controller childController : mChildBackstack) {
+            Log.d("KUCK", "child: " + childController);
+            if (childController.getRouter().handleBack()) {
                 return true;
             }
         }
@@ -643,11 +653,6 @@ public abstract class Controller {
                 listener.execute();
             }
             mOnRouterSetListeners.clear();
-
-            //TODO: what happens here?
-//            for (ChildControllerTransaction child : mChildControllers) {
-//                child.controller.setRouter(router);
-//            }
         } else {
             performOnRestoreInstanceState();
         }
@@ -683,7 +688,7 @@ public abstract class Controller {
 
     final void activityDestroyed(boolean isChangingConfigurations) {
         if (isChangingConfigurations) {
-            removeViewReference();
+            detach(mView, true);
         } else {
             destroy(true);
         }
@@ -762,6 +767,7 @@ public abstract class Controller {
 
             onDestroyView(mView);
 
+            mView.removeOnAttachStateChangeListener(mOnAttachStateChangeListener);
             mView = null;
 
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
@@ -775,6 +781,10 @@ public abstract class Controller {
     }
 
     final View inflate(@NonNull ViewGroup parent) {
+        if (mView != null && mView.getParent() != null && mView.getParent() != parent) {
+            detach(mView, true);
+        }
+
         if (mView == null) {
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
                 lifecycleListener.preCreateView(this);
@@ -782,9 +792,13 @@ public abstract class Controller {
 
             mView = onCreateView(LayoutInflater.from(parent.getContext()), parent);
 
+            for (LifecycleListener lifecycleListener : mLifecycleListeners) {
+                lifecycleListener.postCreateView(this, mView);
+            }
+
             restoreViewState(mView);
 
-            mView.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+            mOnAttachStateChangeListener = new OnAttachStateChangeListener() {
                 @Override
                 public void onViewAttachedToWindow(View v) {
                     if (v == mView) {
@@ -796,13 +810,10 @@ public abstract class Controller {
                 @Override
                 public void onViewDetachedFromWindow(View v) {
                     mViewIsAttached = false;
-                    detach(v, true);
+                    detach(v, false);
                 }
-            });
-
-            for (LifecycleListener lifecycleListener : mLifecycleListeners) {
-                lifecycleListener.postCreateView(this, mView);
-            }
+            };
+            mView.addOnAttachStateChangeListener(mOnAttachStateChangeListener);
         }
 
         return mView;
@@ -840,7 +851,7 @@ public abstract class Controller {
         if (!mAttached) {
             removeViewReference();
         } else if (removeViews) {
-            detach(mView, true);
+            detach(mView, false);
         }
     }
 
@@ -888,11 +899,7 @@ public abstract class Controller {
 
     }
 
-    final Bundle detachAndSaveInstanceState() {
-        if (mAttached && mView != null) {
-            detach(mView, mIsBeingDestroyed);
-        }
-
+    final Bundle saveInstanceState() {
         if (!mHasSavedViewState && mView != null) {
             saveViewState(mView);
         }
@@ -946,6 +953,7 @@ public abstract class Controller {
         for (Bundle childBundle : childBundles) {
             ControllerHostedRouter childRouter = new ControllerHostedRouter();
             childRouter.restoreInstanceState(childBundle);
+            monitorChildRouter(childRouter);
             mChildRouters.add(childRouter);
         }
 
@@ -1004,6 +1012,35 @@ public abstract class Controller {
             }
         }
         return false;
+    }
+
+    private void monitorChildRouter(ControllerHostedRouter childRouter) {
+        //TODO: is this even triggered on restoration?
+        childRouter.addChangeListener(new ControllerChangeListener() {
+            @Override
+            public void onChangeStarted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
+                if (isPush) {
+                    monitorChildController(to);
+                }
+            }
+
+            @Override
+            public void onChangeCompleted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) { }
+        });
+    }
+
+    private void monitorChildController(Controller controller) {
+        mChildBackstack.add(controller);
+        controller.addLifecycleListener(new LifecycleListener() {
+            @Override
+            public void postDestroy(@NonNull Controller controller) {
+                mChildBackstack.remove(controller);
+            }
+        });
+    }
+
+    final void setParentController(Controller controller) {
+        mParentController = controller;
     }
 
     private void ensureRequiredConstructor() {

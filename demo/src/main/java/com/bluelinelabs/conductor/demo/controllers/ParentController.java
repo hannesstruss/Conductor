@@ -2,6 +2,7 @@ package com.bluelinelabs.conductor.demo.controllers;
 
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,15 +40,15 @@ public class ParentController extends BaseController {
     private void addChild(final int index) {
         @IdRes final int frameId = getResources().getIdentifier("child_content_" + (index + 1), "id", getActivity().getPackageName());
         final ViewGroup container = (ViewGroup)getView().findViewById(frameId);
-        final Router childRouter = getChildRouter(container, null);
+        final Router childRouter = getChildRouter(container, null).setPopLastView(true);
 
-        //TODO: is this not going to fade out now?
         if (!childRouter.hasRootController()) {
             ChildController childController = new ChildController("Child Controller #" + index, ColorUtil.getMaterialColor(getResources(), index), false);
 
             childController.addLifecycleListener(new LifecycleListener() {
                 @Override
                 public void onChangeEnd(@NonNull Controller controller, @NonNull ControllerChangeHandler changeHandler, @NonNull ControllerChangeType changeType) {
+                    Log.d("KUCK", "onEnd: " + changeType + "; " + changeHandler);
                     if (changeType == ControllerChangeType.PUSH_ENTER && index < NUMBER_OF_CHILDREN - 1) {
                         addChild(index + 1);
                     } else if (changeType == ControllerChangeType.POP_EXIT) {
@@ -71,14 +72,14 @@ public class ParentController extends BaseController {
         removeChildRouter(getChildRouters().get(index));
     }
 
-//    @Override
-//    public boolean handleBack() {
-//        if (getChildRouters().size() == NUMBER_OF_CHILDREN && !mFinishing) {
-//            mFinishing = true;
-//            removeChild(getChildRouters().size() - 1);
-//        }
-//        return true;
-//    }
+    @Override
+    public boolean handleBack() {
+        if (!mFinishing) {
+            mFinishing = true;
+            return super.handleBack();
+        }
+        return true;
+    }
 
     @Override
     protected String getTitle() {
