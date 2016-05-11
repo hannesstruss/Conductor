@@ -13,6 +13,12 @@ script:
 jdk:
   - oraclejdk8
 
+branches:
+  except:
+    - v2
+    - feature/nested_controllers
+    - feature/save_restore_lifecycle
+
 before_install:
   - chmod +x .buildscript/deploy_snapshot.sh
 

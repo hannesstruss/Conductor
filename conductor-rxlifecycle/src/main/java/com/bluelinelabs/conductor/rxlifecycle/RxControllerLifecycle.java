@@ -3,6 +3,7 @@ package com.bluelinelabs.conductor.rxlifecycle;
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 
+import com.trello.rxlifecycle.LifecycleTransformer;
 import com.trello.rxlifecycle.OutsideLifecycleException;
 import com.trello.rxlifecycle.RxLifecycle;
 
@@ -20,7 +21,7 @@ public class RxControllerLifecycle {
      */
     @NonNull
     @CheckResult
-    public static <T> Observable.Transformer<T, T> bindController(@NonNull final Observable<ControllerEvent> lifecycle) {
+    public static <T> LifecycleTransformer<T> bindController(@NonNull final Observable<ControllerEvent> lifecycle) {
         return RxLifecycle.bind(lifecycle, CONTROLLER_LIFECYCLE);
     }
 

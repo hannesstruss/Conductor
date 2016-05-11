@@ -16,7 +16,7 @@ ext {
 
     rxJava = 'io.reactivex:rxjava:1.1.0'
     rxAndroid = 'io.reactivex:rxandroid:1.1.0'
-    rxLifecycle = 'com.trello:rxlifecycle:0.5.0'
+    rxLifecycle = 'com.trello:rxlifecycle:0.6.0'
 
     junit = 'junit:junit:4.11'
     roboelectric = 'org.robolectric:robolectric:3.0'

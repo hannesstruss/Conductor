@@ -24,7 +24,7 @@ public class PagerController extends BaseController {
     @Bind(R.id.tab_layout) TabLayout mTabLayout;
     @Bind(R.id.view_pager) ViewPager mViewPager;
 
-    private ControllerPagerAdapter mPagerAdapter;
+    private final ControllerPagerAdapter mPagerAdapter;
 
     public PagerController() {
         mPagerAdapter = new ControllerPagerAdapter(this) {
@@ -64,6 +64,12 @@ public class PagerController extends BaseController {
             @Override
             public void onTabReselected(Tab tab) { }
         });
+    }
+
+    @Override
+    protected void onDestroyView(View view) {
+        mViewPager.setAdapter(null);
+        super.onDestroyView(view);
     }
 
     @NonNull

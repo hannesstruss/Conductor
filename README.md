@@ -20,21 +20,21 @@ Conductor is architecture-agnostic and does not try to force any design decision
 ## Installation
 
 ```gradle
-compile 'com.bluelinelabs:conductor:1.1.4'
+compile 'com.bluelinelabs:conductor:1.1.5'
 
 // If you want the components that go along with
 // Android's support libraries (currently just a PagerAdapter):
-compile 'com.bluelinelabs:conductor-support:1.1.4'
+compile 'com.bluelinelabs:conductor-support:1.1.5'
 
 // If you want RxJava/RxAndroid lifecycle support:
-compile 'com.bluelinelabs:conductor-rxlifecycle:1.1.4'
+compile 'com.bluelinelabs:conductor-rxlifecycle:1.1.5'
 ```
 
 SNAPSHOT:
 ```gradle
-compile 'com.bluelinelabs:conductor:1.1.5-SNAPSHOT'
-compile 'com.bluelinelabs:conductor-support:1.1.5-SNAPSHOT'
-compile 'com.bluelinelabs:conductor-rxlifecycle:1.1.5-SNAPSHOT'
+compile 'com.bluelinelabs:conductor:1.1.6-SNAPSHOT'
+compile 'com.bluelinelabs:conductor-support:1.1.6-SNAPSHOT'
+compile 'com.bluelinelabs:conductor-rxlifecycle:1.1.6-SNAPSHOT'
 ```
 
 ## Components to Know
