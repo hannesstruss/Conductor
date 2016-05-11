@@ -720,8 +720,8 @@ public abstract class Controller {
         }
     }
 
-    private void detach(@NonNull View view, boolean allowViewRefRemoval) {
-        final boolean removeViewRef = allowViewRefRemoval && (mRetainViewMode == RetainViewMode.RELEASE_DETACH || mIsBeingDestroyed);
+    private void detach(@NonNull View view, boolean forceViewRefRemoval) {
+        final boolean removeViewRef = forceViewRefRemoval || mRetainViewMode == RetainViewMode.RELEASE_DETACH || mIsBeingDestroyed;
 
         if (mAttached) {
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
@@ -750,7 +750,9 @@ public abstract class Controller {
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
                 lifecycleListener.postDetach(this, view);
             }
-        } else if (removeViewRef) {
+        }
+
+        if (removeViewRef) {
             removeViewReference();
         }
     }
@@ -783,6 +785,7 @@ public abstract class Controller {
     final View inflate(@NonNull ViewGroup parent) {
         if (mView != null && mView.getParent() != null && mView.getParent() != parent) {
             detach(mView, true);
+            removeViewReference();
         }
 
         if (mView == null) {
