@@ -47,6 +47,13 @@ public class ControllerHostedRouter extends Router {
     }
 
     @Override
+    public void onActivityDestroyed(Activity activity) {
+        super.onActivityDestroyed(activity);
+
+        mHostController = null;
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (mHostController != null && mHostController.getRouter() != null) {
             mHostController.getRouter().onActivityResult(requestCode, resultCode, data);

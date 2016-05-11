@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application.ActivityLifecycleCallbacks;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     private Activity mActivity;
     private boolean mHasRegisteredCallbacks;
+    private boolean mDestroyed;
 
     private SparseArray<String> mPermissionRequestMap = new SparseArray<>();
     private SparseArray<String> mActivityRequestMap = new SparseArray<>();
@@ -119,12 +121,34 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
         if (mActivity != null) {
             mActivity.getApplication().unregisterActivityLifecycleCallbacks(this);
-
-            for (Router router : mRouterMap.values()) {
-                router.onActivityDestroyed(mActivity);
-            }
-
+            destroyRouters();
             mActivity = null;
+        }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        mDestroyed = false;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+        destroyRouters();
+    }
+
+    private void destroyRouters() {
+        if (!mDestroyed) {
+            mDestroyed = true;
+
+            if (mActivity != null) {
+                for (Router router : mRouterMap.values()) {
+                    router.onActivityDestroyed(mActivity);
+                }
+            }
         }
     }
 
