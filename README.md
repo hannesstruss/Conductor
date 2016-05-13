@@ -20,21 +20,21 @@ Conductor is architecture-agnostic and does not try to force any design decision
 ## Installation
 
 ```gradle
-compile 'com.bluelinelabs:conductor:1.1.5'
+compile 'com.bluelinelabs:conductor:1.1.6'
 
 // If you want the components that go along with
 // Android's support libraries (currently just a PagerAdapter):
-compile 'com.bluelinelabs:conductor-support:1.1.5'
+compile 'com.bluelinelabs:conductor-support:1.1.6'
 
 // If you want RxJava/RxAndroid lifecycle support:
-compile 'com.bluelinelabs:conductor-rxlifecycle:1.1.5'
+compile 'com.bluelinelabs:conductor-rxlifecycle:1.1.6'
 ```
 
 SNAPSHOT:
 ```gradle
-compile 'com.bluelinelabs:conductor:1.1.6-SNAPSHOT'
-compile 'com.bluelinelabs:conductor-support:1.1.6-SNAPSHOT'
-compile 'com.bluelinelabs:conductor-rxlifecycle:1.1.6-SNAPSHOT'
+compile 'com.bluelinelabs:conductor:1.1.7-SNAPSHOT'
+compile 'com.bluelinelabs:conductor-support:1.1.7-SNAPSHOT'
+compile 'com.bluelinelabs:conductor-rxlifecycle:1.1.7-SNAPSHOT'
 ```
 
 ## Components to Know
@@ -116,7 +116,7 @@ The lifecycle of a Controller is significantly simpler to understand than that o
 `addChildController` can be called on a `Controller` in order to add nested `Controller`s. Child `Controller`s will receive all lifecycle callbacks that parents get.
 
 ### RxJava Lifecycle
-If the RxLifecycle dependency has been added, there is an `RxController` available that can be used along with the standard [RxLifecycle library](https://github.com/trello/RxLifecycle). There is also a `ControllerLifecycleProvider` available if you do not wish to use this subclass. 
+If the RxLifecycle dependency has been added, there is an `RxController` available that can be used along with the standard [RxLifecycle library](https://github.com/trello/RxLifecycle). There is also a `ControllerLifecycleProvider` available if you do not wish to use this subclass.
 
 ## License
 ```
