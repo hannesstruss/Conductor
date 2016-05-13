@@ -40,7 +40,7 @@ public class ParentController extends BaseController {
     private void addChild(final int index) {
         @IdRes final int frameId = getResources().getIdentifier("child_content_" + (index + 1), "id", getActivity().getPackageName());
         final ViewGroup container = (ViewGroup)getView().findViewById(frameId);
-        final Router childRouter = getChildRouter(container, null).setPopLastView(true);
+        final Router childRouter = getChildRouter(container, null).setPopsLastView(true);
 
         if (!childRouter.hasRootController()) {
             ChildController childController = new ChildController("Child Controller #" + index, ColorUtil.getMaterialColor(getResources(), index), false);
@@ -48,7 +48,6 @@ public class ParentController extends BaseController {
             childController.addLifecycleListener(new LifecycleListener() {
                 @Override
                 public void onChangeEnd(@NonNull Controller controller, @NonNull ControllerChangeHandler changeHandler, @NonNull ControllerChangeType changeType) {
-                    Log.d("KUCK", "onEnd: " + changeType + "; " + changeHandler);
                     if (changeType == ControllerChangeType.PUSH_ENTER && index < NUMBER_OF_CHILDREN - 1) {
                         addChild(index + 1);
                     } else if (changeType == ControllerChangeType.POP_EXIT) {

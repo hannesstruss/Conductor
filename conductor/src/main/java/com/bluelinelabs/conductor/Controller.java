@@ -849,7 +849,9 @@ public abstract class Controller {
     final void destroy(boolean removeViews) {
         mIsBeingDestroyed = true;
 
-        // TODO: anything needed to destroy children reliably?
+        for (ControllerHostedRouter childRouter : mChildRouters) {
+            childRouter.destroy();
+        }
 
         if (!mAttached) {
             removeViewReference();

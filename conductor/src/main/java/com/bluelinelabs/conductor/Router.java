@@ -29,12 +29,19 @@ import java.util.List;
  */
 public abstract class Router {
 
+    private static final String KEY_BACKSTACK = "Router.backstack";
+    private static final String KEY_POPS_LAST_VIEW = "Router.popsLastView";
+    private static final String KEY_FORWARD_BACK_EVENTS_TO_CHILDREN = "Router.forwardBackEventsToChildren";
+    private static final String KEY_POP_BACKSTACK_ON_BACK_EVENT = "Router.popBackstackOnBackEvent";
+
     private final Backstack mBackStack = new Backstack();
     private final Deque<Controller> mChildBackstack = new ArrayDeque<>();
     private final List<ControllerChangeListener> mChangeListeners = new ArrayList<>();
     private final List<Controller> mDestroyingControllers = new ArrayList<>();
 
-    private boolean mPopLastView;
+    private boolean mPopsLastView = false;
+    private boolean mForwardBackEventsToChildren = true;
+    private boolean mPopBackstackOnBackEvent = true;
 
     ViewGroup mContainer;
 
@@ -74,21 +81,23 @@ public abstract class Router {
      * to its top {@link Controller}. If that controller doesn't handle it, then it will be popped.
      */
     public boolean handleBack() {
-        //TODO: this should probably not even pop a controller when back is pressed if the flag isn't set?
-
-        Iterator<Controller> backstackIterator = mChildBackstack.descendingIterator();
-        while (backstackIterator.hasNext()) {
-            Controller childController = backstackIterator.next();
-            if (childController.isAttached() && childController.getRouter().handleBack()) {
-                return true;
+        if (mForwardBackEventsToChildren) {
+            Iterator<Controller> backstackIterator = mChildBackstack.descendingIterator();
+            while (backstackIterator.hasNext()) {
+                Controller childController = backstackIterator.next();
+                if (childController.isAttached() && childController.getRouter().handleBack()) {
+                    return true;
+                }
             }
         }
 
-        if (!mBackStack.isEmpty()) {
-            if (mBackStack.peek().controller.handleBack()) {
-                return true;
-            } else if (popCurrentController()) {
-                return true;
+        if (mPopBackstackOnBackEvent) {
+            if (!mBackStack.isEmpty()) {
+                if (mBackStack.peek().controller.handleBack()) {
+                    return true;
+                } else if (popCurrentController()) {
+                    return true;
+                }
             }
         }
 
@@ -129,7 +138,7 @@ public abstract class Router {
             performControllerChange(mBackStack.peek(), topController, false);
         }
 
-        if (mPopLastView) {
+        if (mPopsLastView) {
             return topController != null;
         } else {
             return !mBackStack.isEmpty();
@@ -165,6 +174,7 @@ public abstract class Router {
     }
 
     void destroy() {
+        mPopsLastView = true;
         List<RouterTransaction> poppedControllers = mBackStack.popAll();
 
         if (poppedControllers.size() > 0) {
@@ -172,13 +182,23 @@ public abstract class Router {
 
             performControllerChange(null, poppedControllers.get(0).controller, false, poppedControllers.get(0).getPopControllerChangeHandler());
         }
-
-        // TODO: this needs to remove the last view
     }
 
     //TODO: this needs a better name and some docs
-    public Router setPopLastView(boolean popLastView) {
-        mPopLastView = popLastView;
+    public Router setPopsLastView(boolean popsLastView) {
+        mPopsLastView = popsLastView;
+        return this;
+    }
+
+    //TODO: this needs some docs
+    public Router setForwardsBackEventsToChildren(boolean forwards) {
+        mForwardBackEventsToChildren = forwards;
+        return this;
+    }
+
+    //TODO: this needs some docs
+    public Router setPopBackstackOnBackEvent(boolean forwards) {
+        mPopBackstackOnBackEvent = forwards;
         return this;
     }
 
@@ -415,11 +435,21 @@ public abstract class Router {
             transaction.controller.prepareForActivityPause();
         }
 
-        mBackStack.saveInstanceState(outState);
+        Bundle backstackState = new Bundle();
+        mBackStack.saveInstanceState(backstackState);
+
+        outState.putParcelable(KEY_BACKSTACK, backstackState);
+        outState.putBoolean(KEY_POPS_LAST_VIEW, mPopsLastView);
+        outState.putBoolean(KEY_FORWARD_BACK_EVENTS_TO_CHILDREN, mForwardBackEventsToChildren);
+        outState.putBoolean(KEY_POP_BACKSTACK_ON_BACK_EVENT, mPopBackstackOnBackEvent);
     }
 
     public void restoreInstanceState(Bundle savedInstanceState) {
-        mBackStack.restoreInstanceState(savedInstanceState);
+        Bundle backstackBundle = savedInstanceState.getParcelable(KEY_BACKSTACK);
+        mBackStack.restoreInstanceState(backstackBundle);
+        mPopsLastView = savedInstanceState.getBoolean(KEY_POPS_LAST_VIEW);
+        mForwardBackEventsToChildren = savedInstanceState.getBoolean(KEY_FORWARD_BACK_EVENTS_TO_CHILDREN);
+        mPopBackstackOnBackEvent = savedInstanceState.getBoolean(KEY_POP_BACKSTACK_ON_BACK_EVENT);
 
         Iterator<RouterTransaction> backstackIterator = mBackStack.reverseIterator();
         while (backstackIterator.hasNext()) {
@@ -514,12 +544,9 @@ public abstract class Router {
     }
 
     private void performControllerChange(final Controller to, final Controller from, boolean isPush, @NonNull ControllerChangeHandler changeHandler) {
-
-        Log.d("KUCK", "popLast? " + mPopLastView);
-
         if (to != null) {
             setControllerRouter(to);
-        } else if (mBackStack.size() == 0 && !mPopLastView) {
+        } else if (mBackStack.size() == 0 && !mPopsLastView) {
             // We're emptying out the backstack. Views get weird if you transition them out, so just no-op it. The hosting
             // Activity should be handling this by finishing or at least hiding this view.
             changeHandler = new NoOpControllerChangeHandler();
@@ -576,4 +603,5 @@ public abstract class Router {
     abstract void unregisterForActivityResults(String instanceId);
     abstract void requestPermissions(String instanceId, String[] permissions, int requestCode);
     abstract boolean hasHost();
+
 }

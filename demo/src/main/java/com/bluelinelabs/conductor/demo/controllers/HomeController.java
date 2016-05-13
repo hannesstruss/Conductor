@@ -115,7 +115,7 @@ public class HomeController extends BaseController {
             content.append(link);
 
             getChildRouter(mRootView, null)
-                    .setPopLastView(true)
+                    .setPopsLastView(true)
                     .setRoot(RouterTransaction.builder(new OverlayController(content))
                             .pushChangeHandler(new FadeChangeHandler())
                             .popChangeHandler(new FadeChangeHandler())
@@ -162,7 +162,7 @@ public class HomeController extends BaseController {
                 break;
             case OVERLAY:
                 getChildRouter(mRootView, null)
-                        .setPopLastView(true)
+                        .setPopsLastView(true)
                         .setRoot(RouterTransaction.builder(new OverlayController("I'm an overlay!"))
                                 .pushChangeHandler(new FadeChangeHandler())
                                 .popChangeHandler(new FadeChangeHandler())
