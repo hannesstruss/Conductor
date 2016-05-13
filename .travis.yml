@@ -14,10 +14,10 @@ jdk:
   - oraclejdk8
 
 branches:
-  except:
+  only
     - v2
-    - feature/nested_controllers
-    - feature/save_restore_lifecycle
+    - develop
+    - master
 
 before_install:
   - chmod +x .buildscript/deploy_snapshot.sh
