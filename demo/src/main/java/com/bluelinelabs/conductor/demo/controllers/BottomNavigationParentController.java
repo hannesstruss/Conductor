@@ -87,7 +87,7 @@ public class BottomNavigationParentController extends BaseController {
             mVisibleContainer.setVisibility(View.VISIBLE);
 
             if (oldContainer != null) {
-                getChildRouter(oldContainer, null).setForwardsBackEventsToChildren(false).setPopBackstackOnBackEvent(false);
+                getChildRouter(oldContainer, null).setHandlesBack(false);
 
                 AnimatorSet containerAnimations = new AnimatorSet();
                 containerAnimations.play(ObjectAnimator.ofFloat(mVisibleContainer, View.ALPHA, 1));
@@ -104,7 +104,7 @@ public class BottomNavigationParentController extends BaseController {
             }
 
             Router childRouter = getChildRouter(mChildContainers[position], null).setPopsLastView(false);
-            childRouter.setForwardsBackEventsToChildren(true).setPopBackstackOnBackEvent(true);
+            childRouter.setHandlesBack(true);
             if (!childRouter.hasRootController()) {
                 childRouter.setRoot(RouterTransaction.builder(new NavigationDemoController(0)).build());
             }

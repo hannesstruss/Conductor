@@ -30,8 +30,7 @@ public abstract class Router {
 
     private static final String KEY_BACKSTACK = "Router.backstack";
     private static final String KEY_POPS_LAST_VIEW = "Router.popsLastView";
-    private static final String KEY_FORWARD_BACK_EVENTS_TO_CHILDREN = "Router.forwardBackEventsToChildren";
-    private static final String KEY_POP_BACKSTACK_ON_BACK_EVENT = "Router.popBackstackOnBackEvent";
+    private static final String KEY_HANDLES_BACK = "Router.handlesBack";
 
     private final Backstack mBackStack = new Backstack();
     private final Deque<Controller> mChildBackstack = new ArrayDeque<>();
@@ -39,8 +38,7 @@ public abstract class Router {
     private final List<Controller> mDestroyingControllers = new ArrayList<>();
 
     private boolean mPopsLastView = false;
-    private boolean mForwardBackEventsToChildren = true;
-    private boolean mPopBackstackOnBackEvent = true;
+    private boolean mHandlesBack = true;
 
     ViewGroup mContainer;
 
@@ -80,7 +78,7 @@ public abstract class Router {
      * to its top {@link Controller}. If that controller doesn't handle it, then it will be popped.
      */
     public boolean handleBack() {
-        if (mForwardBackEventsToChildren) {
+        if (mHandlesBack) {
             Iterator<Controller> backstackIterator = mChildBackstack.descendingIterator();
             while (backstackIterator.hasNext()) {
                 Controller childController = backstackIterator.next();
@@ -88,9 +86,7 @@ public abstract class Router {
                     return true;
                 }
             }
-        }
 
-        if (mPopBackstackOnBackEvent) {
             if (!mBackStack.isEmpty()) {
                 if (mBackStack.peek().controller.handleBack()) {
                     return true;
@@ -190,14 +186,8 @@ public abstract class Router {
     }
 
     //TODO: this needs some docs
-    public Router setForwardsBackEventsToChildren(boolean forwards) {
-        mForwardBackEventsToChildren = forwards;
-        return this;
-    }
-
-    //TODO: this needs some docs
-    public Router setPopBackstackOnBackEvent(boolean forwards) {
-        mPopBackstackOnBackEvent = forwards;
+    public Router setHandlesBack(boolean handlesBack) {
+        mHandlesBack = handlesBack;
         return this;
     }
 
@@ -439,16 +429,14 @@ public abstract class Router {
 
         outState.putParcelable(KEY_BACKSTACK, backstackState);
         outState.putBoolean(KEY_POPS_LAST_VIEW, mPopsLastView);
-        outState.putBoolean(KEY_FORWARD_BACK_EVENTS_TO_CHILDREN, mForwardBackEventsToChildren);
-        outState.putBoolean(KEY_POP_BACKSTACK_ON_BACK_EVENT, mPopBackstackOnBackEvent);
+        outState.putBoolean(KEY_HANDLES_BACK, mHandlesBack);
     }
 
     public void restoreInstanceState(Bundle savedInstanceState) {
         Bundle backstackBundle = savedInstanceState.getParcelable(KEY_BACKSTACK);
         mBackStack.restoreInstanceState(backstackBundle);
         mPopsLastView = savedInstanceState.getBoolean(KEY_POPS_LAST_VIEW);
-        mForwardBackEventsToChildren = savedInstanceState.getBoolean(KEY_FORWARD_BACK_EVENTS_TO_CHILDREN);
-        mPopBackstackOnBackEvent = savedInstanceState.getBoolean(KEY_POP_BACKSTACK_ON_BACK_EVENT);
+        mHandlesBack = savedInstanceState.getBoolean(KEY_HANDLES_BACK);
 
         Iterator<RouterTransaction> backstackIterator = mBackStack.reverseIterator();
         while (backstackIterator.hasNext()) {
