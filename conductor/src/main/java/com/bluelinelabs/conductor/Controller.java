@@ -487,7 +487,6 @@ public abstract class Controller {
      */
     public boolean handleBack() {
         for (Controller childController : mChildBackstack) {
-            Log.d("KUCK", "child: " + childController);
             if (childController.getRouter().handleBack()) {
                 return true;
             }
@@ -704,11 +703,6 @@ public abstract class Controller {
         mAttached = true;
         mNeedsAttach = false;
 
-        // TODO: what to do here?
-//        for (ChildControllerTransaction child : mChildControllers) {
-//            attachChildController(child, new SimpleSwapChangeHandler());
-//        }
-
         onAttach(view);
 
         if (mHasOptionsMenu && !mOptionsMenuHidden) {
@@ -735,18 +729,6 @@ public abstract class Controller {
                 mRouter.invalidateOptionsMenu();
             }
 
-            //TODO: anything needed to detach children reliably?
-//            for (Controller child : childControllers()) {
-//                View childView = child.mView;
-//                if (childView != null && childView.getParent() != null) {
-//                    ((ViewGroup)childView.getParent()).removeView(childView);
-//                }
-//            }
-
-            if (removeViewRef) {
-                removeViewReference();
-            }
-
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
                 lifecycleListener.postDetach(this, view);
             }
@@ -770,6 +752,7 @@ public abstract class Controller {
             onDestroyView(mView);
 
             mView.removeOnAttachStateChangeListener(mOnAttachStateChangeListener);
+            mViewIsAttached = false;
             mView = null;
 
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
@@ -836,6 +819,8 @@ public abstract class Controller {
 
             onDestroy();
 
+            mParentController = null;
+
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
                 lifecycleListener.postDestroy(this);
             }
@@ -873,8 +858,6 @@ public abstract class Controller {
         onSaveViewState(view, stateBundle);
         mViewState.putBundle(KEY_VIEW_STATE_BUNDLE, stateBundle);
 
-        //TODO: child controllers will have their view states saved, right?
-
         for (LifecycleListener lifecycleListener : mLifecycleListeners) {
             lifecycleListener.onSaveViewState(this, mViewState);
         }
@@ -885,7 +868,6 @@ public abstract class Controller {
             view.restoreHierarchyState(mViewState.getSparseParcelableArray(KEY_VIEW_STATE_HIERARCHY));
             onRestoreViewState(view, mViewState.getBundle(KEY_VIEW_STATE_BUNDLE));
 
-            //TODO: will this restore the child view states?
             for (ControllerHostedRouter childRouter : mChildRouters) {
                 if (!childRouter.hasHost()) {
                     View containerView = view.findViewById(childRouter.getHostId());
@@ -901,7 +883,6 @@ public abstract class Controller {
                 lifecycleListener.onRestoreViewState(this, mViewState);
             }
         }
-
     }
 
     final Bundle saveInstanceState() {

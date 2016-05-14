@@ -134,8 +134,6 @@ public class ControllerHostedRouter extends Router {
     void setControllerRouter(Controller controller) {
         super.setControllerRouter(controller);
         controller.setParentController(mHostController);
-
-        //TODO: maybe monitor the lifecycle here? how does it get to the global backstack though?
     }
 
     @Override

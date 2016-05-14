@@ -31,7 +31,7 @@ public class RouterTests {
 
         Assert.assertFalse(mRouter.hasRootController());
 
-        mRouter.setRoot(rootController, rootTag);
+        mRouter.setRoot(RouterTransaction.builder(rootController).tag(rootTag).build());
 
         Assert.assertTrue(mRouter.hasRootController());
 
@@ -46,8 +46,8 @@ public class RouterTests {
         Controller oldRootController = new TestController();
         Controller newRootController = new TestController();
 
-        mRouter.setRoot(oldRootController, oldRootTag);
-        mRouter.setRoot(newRootController, newRootTag);
+        mRouter.setRoot(RouterTransaction.builder(oldRootController).tag(oldRootTag).build());
+        mRouter.setRoot(RouterTransaction.builder(newRootController).tag(newRootTag).build());
 
         Assert.assertNull(mRouter.getControllerWithTag(oldRootTag));
         Assert.assertEquals(newRootController, mRouter.getControllerWithTag(newRootTag));
