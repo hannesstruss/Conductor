@@ -51,6 +51,7 @@ public class ControllerHostedRouter extends Router {
         super.onActivityDestroyed(activity);
 
         mHostController = null;
+        mContainer = null;
     }
 
     @Override

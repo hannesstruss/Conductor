@@ -126,10 +126,16 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mDestroyed = false;
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
         mDestroyed = false;
     }
 

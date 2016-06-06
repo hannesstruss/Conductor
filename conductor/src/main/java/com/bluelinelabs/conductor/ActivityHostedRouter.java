@@ -36,13 +36,12 @@ public class ActivityHostedRouter extends Router {
     @Override
     public void onActivityDestroyed(Activity activity) {
         super.onActivityDestroyed(activity);
-
         mLifecycleHandler = null;
     }
 
     @Override
     public final void invalidateOptionsMenu() {
-        if (mLifecycleHandler != null) {
+        if (mLifecycleHandler != null && mLifecycleHandler.getFragmentManager() != null) {
             mLifecycleHandler.getFragmentManager().invalidateOptionsMenu();
         }
     }
