@@ -29,8 +29,9 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 import java.util.UUID;
 
 /**
@@ -72,6 +73,7 @@ public abstract class Controller {
     private String mTargetInstanceId;
     private boolean mNeedsAttach;
     private boolean mHasSavedViewState;
+    private boolean mIsDetachFrozen;
     private ControllerChangeHandler mOverriddenPushHandler;
     private ControllerChangeHandler mOverriddenPopHandler;
     private RetainViewMode mRetainViewMode = RetainViewMode.RELEASE_DETACH;
@@ -80,7 +82,7 @@ public abstract class Controller {
     private final List<LifecycleListener> mLifecycleListeners = new ArrayList<>();
     private final ArrayList<String> mRequestedPermissions = new ArrayList<>();
     private final ArrayList<RouterRequiringFunc> mOnRouterSetListeners = new ArrayList<>();
-    private final Queue<Controller> mChildBackstack = new ArrayDeque<>();
+    private final Deque<Controller> mChildBackstack = new ArrayDeque<>();
 
     static Controller newInstance(Bundle bundle) {
         final String className = bundle.getString(KEY_CLASS_NAME);
@@ -485,8 +487,10 @@ public abstract class Controller {
      * @return True if this Controller has consumed the back button press, otherwise false
      */
     public boolean handleBack() {
-        for (Controller childController : mChildBackstack) {
-            if (childController.getRouter().handleBack()) {
+        Iterator<Controller> childIterator = mChildBackstack.descendingIterator();
+        while (childIterator.hasNext()) {
+            Controller childController = childIterator.next();
+            if (childController.isAttached() && childController.getRouter().handleBack()) {
                 return true;
             }
         }
@@ -624,7 +628,7 @@ public abstract class Controller {
         return false;
     }
 
-    final void prepareForActivityPause() {
+    final void prepareForHostDetach() {
         mNeedsAttach = mNeedsAttach || mAttached;
     }
 
@@ -714,6 +718,10 @@ public abstract class Controller {
     }
 
     private void detach(@NonNull View view, boolean forceViewRefRemoval) {
+        for (ControllerHostedRouter router : mChildRouters) {
+            router.prepareForHostDetach();
+        }
+
         final boolean removeViewRef = forceViewRefRemoval || mRetainViewMode == RetainViewMode.RELEASE_DETACH || mIsBeingDestroyed;
 
         if (mAttached) {
@@ -757,6 +765,10 @@ public abstract class Controller {
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
                 lifecycleListener.postDestroyView(this);
             }
+
+            for (ControllerHostedRouter childRouter : mChildRouters) {
+                childRouter.removeHost();
+            }
         }
 
         if (mIsBeingDestroyed) {
@@ -795,9 +807,13 @@ public abstract class Controller {
                 @Override
                 public void onViewDetachedFromWindow(View v) {
                     mViewIsAttached = false;
-                    detach(v, false);
+
+                    if (!mIsDetachFrozen) {
+                        detach(v, false);
+                    }
                 }
             };
+
             mView.addOnAttachStateChangeListener(mOnAttachStateChangeListener);
         }
 
@@ -959,6 +975,10 @@ public abstract class Controller {
     }
 
     final void changeStarted(ControllerChangeHandler changeHandler, ControllerChangeType changeType) {
+        for (ControllerHostedRouter router : mChildRouters) {
+            router.setDetachFrozen(true);
+        }
+
         onChangeStarted(changeHandler, changeType);
 
         for (LifecycleListener lifecycleListener : mLifecycleListeners) {
@@ -967,10 +987,24 @@ public abstract class Controller {
     }
 
     final void changeEnded(ControllerChangeHandler changeHandler, ControllerChangeType changeType) {
+        for (ControllerHostedRouter router : mChildRouters) {
+            router.setDetachFrozen(false);
+        }
+
         onChangeEnded(changeHandler, changeType);
 
         for (LifecycleListener lifecycleListener : mLifecycleListeners) {
             lifecycleListener.onChangeEnd(this, changeHandler, changeType);
+        }
+    }
+
+    final void setDetachFrozen(boolean frozen) {
+        if (mIsDetachFrozen != frozen) {
+            mIsDetachFrozen = frozen;
+
+            if (!frozen && mView != null && !mViewIsAttached) {
+                detach(mView, false);
+            }
         }
     }
 
@@ -1005,7 +1039,7 @@ public abstract class Controller {
             @Override
             public void onChangeStarted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
                 if (isPush) {
-                    monitorChildController(to);
+                    onChildControllerPushed(to);
                 }
             }
 
@@ -1014,7 +1048,7 @@ public abstract class Controller {
         });
     }
 
-    private void monitorChildController(Controller controller) {
+    private void onChildControllerPushed(Controller controller) {
         mChildBackstack.add(controller);
         controller.addLifecycleListener(new LifecycleListener() {
             @Override

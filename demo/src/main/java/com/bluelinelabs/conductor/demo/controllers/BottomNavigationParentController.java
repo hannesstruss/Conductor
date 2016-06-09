@@ -62,6 +62,11 @@ public class BottomNavigationParentController extends BaseController {
         mVisibleContainer = null;
     }
 
+    @Override
+    public boolean handleBack() {
+        return getChildRouter(mChildContainers[mCurrentTab], null).handleBack();
+    }
+
     private void setupBottomNavigation() {
         mBottomNavigation.addItem(new AHBottomNavigationItem(R.string.groups, R.drawable.ic_group_black_24dp, R.color.blue_300));
         mBottomNavigation.addItem(new AHBottomNavigationItem(R.string.places, R.drawable.ic_place_black_24dp, R.color.brown_300));
@@ -87,8 +92,6 @@ public class BottomNavigationParentController extends BaseController {
             mVisibleContainer.setVisibility(View.VISIBLE);
 
             if (oldContainer != null) {
-                getChildRouter(oldContainer, null).setHandlesBack(false);
-
                 AnimatorSet containerAnimations = new AnimatorSet();
                 containerAnimations.play(ObjectAnimator.ofFloat(mVisibleContainer, View.ALPHA, 1));
                 containerAnimations.play(ObjectAnimator.ofFloat(oldContainer, View.ALPHA, 0));
@@ -104,7 +107,6 @@ public class BottomNavigationParentController extends BaseController {
             }
 
             Router childRouter = getChildRouter(mChildContainers[position], null).setPopsLastView(false);
-            childRouter.setHandlesBack(true);
             if (!childRouter.hasRootController()) {
                 childRouter.setRoot(RouterTransaction.builder(new NavigationDemoController(0)).build());
             }

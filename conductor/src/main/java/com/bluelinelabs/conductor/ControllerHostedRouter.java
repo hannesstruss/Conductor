@@ -28,9 +28,7 @@ public class ControllerHostedRouter extends Router {
 
     public final void setHost(@NonNull Controller controller, @NonNull ViewGroup container) {
         if (mHostController != controller || mContainer != container) {
-            if (mContainer != null && mContainer instanceof ControllerChangeListener) {
-                removeChangeListener((ControllerChangeListener)mContainer);
-            }
+            removeHost();
 
             if (container instanceof ControllerChangeListener) {
                 addChangeListener((ControllerChangeListener)container);
@@ -38,6 +36,21 @@ public class ControllerHostedRouter extends Router {
 
             mHostController = controller;
             mContainer = container;
+        }
+    }
+
+    public final void removeHost() {
+        if (mContainer != null && mContainer instanceof ControllerChangeListener) {
+            removeChangeListener((ControllerChangeListener)mContainer);
+        }
+
+        mHostController = null;
+        mContainer = null;
+    }
+
+    public final void setDetachFrozen(boolean frozen) {
+        for (RouterTransaction transaction : mBackStack) {
+            transaction.controller.setDetachFrozen(frozen);
         }
     }
 
@@ -50,8 +63,7 @@ public class ControllerHostedRouter extends Router {
     public void onActivityDestroyed(Activity activity) {
         super.onActivityDestroyed(activity);
 
-        mHostController = null;
-        mContainer = null;
+        removeHost();
     }
 
     @Override
@@ -135,20 +147,6 @@ public class ControllerHostedRouter extends Router {
     void setControllerRouter(Controller controller) {
         super.setControllerRouter(controller);
         controller.setParentController(mHostController);
-    }
-
-    @Override
-    void pushToBackstack(@NonNull RouterTransaction entry) {
-        super.pushToBackstack(entry);
-
-        mHostController.getRouter().onChildControllerPushed(entry.controller);
-    }
-
-    @Override
-    void onChildControllerPushed(Controller controller) {
-        super.onChildControllerPushed(controller);
-
-        mHostController.getRouter().onChildControllerPushed(controller);
     }
 
     public int getHostId() {

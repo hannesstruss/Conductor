@@ -56,7 +56,7 @@ public class HomeController extends BaseController {
     }
 
     @Bind(R.id.recycler_view) RecyclerView mRecyclerView;
-    @Bind(R.id.home_root) ViewGroup mRootView;
+    @Bind(R.id.overlay_root) ViewGroup mOverlayRoot;
 
     public HomeController() {
         setHasOptionsMenu(true);
@@ -80,7 +80,7 @@ public class HomeController extends BaseController {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-       inflater.inflate(R.menu.home, menu);
+        inflater.inflate(R.menu.home, menu);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class HomeController extends BaseController {
             content.append("\n\n");
             content.append(link);
 
-            getChildRouter(mRootView, null)
+            getChildRouter(mOverlayRoot, null)
                     .setPopsLastView(true)
                     .setRoot(RouterTransaction.builder(new OverlayController(content))
                             .pushChangeHandler(new FadeChangeHandler())
@@ -161,7 +161,7 @@ public class HomeController extends BaseController {
                         .build());
                 break;
             case OVERLAY:
-                getChildRouter(mRootView, null)
+                getChildRouter(mOverlayRoot, null)
                         .setPopsLastView(true)
                         .setRoot(RouterTransaction.builder(new OverlayController("I'm an overlay!"))
                                 .pushChangeHandler(new FadeChangeHandler())
