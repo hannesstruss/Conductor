@@ -4,8 +4,9 @@ import android.support.v4.view.PagerAdapter;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bluelinelabs.conductor.ChildControllerTransaction;
 import com.bluelinelabs.conductor.Controller;
+import com.bluelinelabs.conductor.Router;
+import com.bluelinelabs.conductor.RouterTransaction;
 
 /**
  * An adapter for ViewPagers that will handle adding and removing Controllers
@@ -30,21 +31,19 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
         final String name = makeControllerName(container.getId(), getItemId(position));
 
-        Controller controller = mHost.getChildController(name);
-        if (controller == null) {
-            controller = getItem(position);
-
-            mHost.addChildController(ChildControllerTransaction.builder(controller, container.getId())
+        Router router = mHost.getChildRouter(container, name);
+        if (!router.hasRootController()) {
+            router.setRoot(RouterTransaction.builder(getItem(position))
                     .tag(name)
                     .build());
         }
 
-        return controller;
+        return router.getControllerWithTag(name);
     }
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
-        mHost.removeChildController((Controller)object);
+        mHost.removeChildRouter(((Controller)object).getRouter());
     }
 
     @Override

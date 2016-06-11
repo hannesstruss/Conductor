@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.bluelinelabs.conductor.Controller.RetainViewMode;
@@ -34,7 +35,7 @@ public class ControllerTests {
 
         mRouter = Conductor.attachRouter(mActivityController.get(), routerContainer, savedInstanceState);
         if (!mRouter.hasRootController()) {
-            mRouter.setRoot(new TestController());
+            mRouter.setRoot(RouterTransaction.builder(new TestController()).build());
         }
     }
 
@@ -103,7 +104,8 @@ public class ControllerTests {
 
         mRouter.pushController(RouterTransaction.builder(parent).build());
         ViewUtils.setAttached(parent.getView(), true);
-        parent.addChildController(ChildControllerTransaction.builder(child, TestController.VIEW_ID).build());
+        parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null)
+                .setRoot(RouterTransaction.builder(child).build());
         ViewUtils.setAttached(child.getView(), true);
 
         CallState childExpectedCallState = new CallState(true);
@@ -162,7 +164,8 @@ public class ControllerTests {
 
         mRouter.pushController(RouterTransaction.builder(parent).build());
         ViewUtils.setAttached(parent.getView(), true);
-        parent.addChildController(ChildControllerTransaction.builder(child, TestController.VIEW_ID).build());
+        parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null)
+                .setRoot(RouterTransaction.builder(child).build());
         ViewUtils.setAttached(child.getView(), true);
 
         CallState childExpectedCallState = new CallState(true);
@@ -228,7 +231,8 @@ public class ControllerTests {
 
         mRouter.pushController(RouterTransaction.builder(parent).build());
         ViewUtils.setAttached(parent.getView(), true);
-        parent.addChildController(ChildControllerTransaction.builder(child, TestController.VIEW_ID).build());
+        parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null)
+                .setRoot(RouterTransaction.builder(child).build());
         ViewUtils.setAttached(child.getView(), true);
 
         CallState childExpectedCallState = new CallState(true);
@@ -266,6 +270,105 @@ public class ControllerTests {
         mRouter.onCreateOptionsMenu(null, null);
         assertCalls(childExpectedCallState, child);
         assertCalls(parentExpectedCallState, parent);
+    }
+
+    @Test
+    public void testAddRemoveChildControllers() {
+        TestController parent = new TestController();
+        TestController child1 = new TestController();
+        TestController child2 = new TestController();
+
+        mRouter.pushController(RouterTransaction.builder(parent).build());
+
+        Assert.assertEquals(0, parent.getChildRouters().size());
+        Assert.assertNull(child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+
+        Router childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null);
+        childRouter.setRoot(RouterTransaction.builder(child1).build());
+
+        Assert.assertEquals(1, parent.getChildRouters().size());
+        Assert.assertEquals(childRouter, parent.getChildRouters().get(0));
+        Assert.assertEquals(1, childRouter.getBackstackSize());
+        Assert.assertEquals(child1, childRouter.getControllers().get(0));
+        Assert.assertEquals(parent, child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+
+        childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null);
+        childRouter.pushController(RouterTransaction.builder(child2).build());
+
+        Assert.assertEquals(1, parent.getChildRouters().size());
+        Assert.assertEquals(childRouter, parent.getChildRouters().get(0));
+        Assert.assertEquals(2, childRouter.getBackstackSize());
+        Assert.assertEquals(child1, childRouter.getControllers().get(0));
+        Assert.assertEquals(child2, childRouter.getControllers().get(1));
+        Assert.assertEquals(parent, child1.getParentController());
+        Assert.assertEquals(parent, child2.getParentController());
+
+        childRouter.popController(child2);
+
+        Assert.assertEquals(1, parent.getChildRouters().size());
+        Assert.assertEquals(childRouter, parent.getChildRouters().get(0));
+        Assert.assertEquals(1, childRouter.getBackstackSize());
+        Assert.assertEquals(child1, childRouter.getControllers().get(0));
+        Assert.assertEquals(parent, child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+
+        childRouter.popController(child1);
+
+        Assert.assertEquals(1, parent.getChildRouters().size());
+        Assert.assertEquals(childRouter, parent.getChildRouters().get(0));
+        Assert.assertEquals(0, childRouter.getBackstackSize());
+        Assert.assertNull(child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+    }
+
+    @Test
+    public void testAddRemoveChildRouters() {
+        TestController parent = new TestController();
+
+        TestController child1 = new TestController();
+        TestController child2 = new TestController();
+
+        mRouter.pushController(RouterTransaction.builder(parent).build());
+
+        Assert.assertEquals(0, parent.getChildRouters().size());
+        Assert.assertNull(child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+
+        Router childRouter1 = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.CHILD_VIEW_ID_1), null);
+        Router childRouter2 = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.CHILD_VIEW_ID_2), null);
+
+        childRouter1.setRoot(RouterTransaction.builder(child1).build());
+        childRouter2.setRoot(RouterTransaction.builder(child2).build());
+
+        Assert.assertEquals(2, parent.getChildRouters().size());
+        Assert.assertEquals(childRouter1, parent.getChildRouters().get(0));
+        Assert.assertEquals(childRouter2, parent.getChildRouters().get(1));
+        Assert.assertEquals(1, childRouter1.getBackstackSize());
+        Assert.assertEquals(1, childRouter2.getBackstackSize());
+        Assert.assertEquals(child1, childRouter1.getControllers().get(0));
+        Assert.assertEquals(child2, childRouter2.getControllers().get(0));
+        Assert.assertEquals(parent, child1.getParentController());
+        Assert.assertEquals(parent, child2.getParentController());
+
+        parent.removeChildRouter(childRouter2);
+
+        Assert.assertEquals(1, parent.getChildRouters().size());
+        Assert.assertEquals(childRouter1, parent.getChildRouters().get(0));
+        Assert.assertEquals(1, childRouter1.getBackstackSize());
+        Assert.assertEquals(0, childRouter2.getBackstackSize());
+        Assert.assertEquals(child1, childRouter1.getControllers().get(0));
+        Assert.assertEquals(parent, child1.getParentController());
+        Assert.assertNull(child2.getParentController());
+
+        parent.removeChildRouter(childRouter1);
+
+        Assert.assertEquals(0, parent.getChildRouters().size());
+        Assert.assertEquals(0, childRouter1.getBackstackSize());
+        Assert.assertEquals(0, childRouter2.getBackstackSize());
+        Assert.assertNull(child1.getParentController());
+        Assert.assertNull(child2.getParentController());
     }
 
     private void assertCalls(CallState callState, TestController controller) {

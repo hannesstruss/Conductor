@@ -8,7 +8,9 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,14 +20,17 @@ import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewGroup;
 
+import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
 import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
-import com.bluelinelabs.conductor.changehandler.SimpleSwapChangeHandler;
 import com.bluelinelabs.conductor.internal.ClassUtils;
 import com.bluelinelabs.conductor.internal.RouterRequiringFunc;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,7 +44,7 @@ public abstract class Controller {
 
     private static final String KEY_CLASS_NAME = "Controller.className";
     private static final String KEY_VIEW_STATE = "Controller.viewState";
-    private static final String KEY_CHILDREN = "Controller.childControllers";
+    private static final String KEY_CHILD_ROUTERS = "Controller.childRouters";
     private static final String KEY_SAVED_STATE = "Controller.savedState";
     private static final String KEY_INSTANCE_ID = "Controller.instanceId";
     private static final String KEY_TARGET_INSTANCE_ID = "Controller.target.instanceId";
@@ -68,14 +73,16 @@ public abstract class Controller {
     private String mTargetInstanceId;
     private boolean mNeedsAttach;
     private boolean mHasSavedViewState;
+    private boolean mIsDetachFrozen;
     private ControllerChangeHandler mOverriddenPushHandler;
     private ControllerChangeHandler mOverriddenPopHandler;
     private RetainViewMode mRetainViewMode = RetainViewMode.RELEASE_DETACH;
     private OnAttachStateChangeListener mOnAttachStateChangeListener;
-    private final List<ChildControllerTransaction> mChildControllers = new ArrayList<>();
+    private final List<ControllerHostedRouter> mChildRouters = new ArrayList<>();
     private final List<LifecycleListener> mLifecycleListeners = new ArrayList<>();
     private final ArrayList<String> mRequestedPermissions = new ArrayList<>();
     private final ArrayList<RouterRequiringFunc> mOnRouterSetListeners = new ArrayList<>();
+    private final Deque<Controller> mChildBackstack = new ArrayDeque<>();
 
     static Controller newInstance(Bundle bundle) {
         final String className = bundle.getString(KEY_CLASS_NAME);
@@ -144,33 +151,33 @@ public abstract class Controller {
         return mArgs;
     }
 
-    /**
-     * Adds a child Controller that will be hosted within this Controller. Can be used for nesting
-     * Controllers or for presenting Dialog-like Views on top of this Controller.
-     */
-    public void addChildController(ChildControllerTransaction transaction) {
-        addChildController(transaction, transaction.getPushControllerChangeHandler());
-    }
+    public final Router getChildRouter(@NonNull ViewGroup container, String tag) {
+        @IdRes final int containerId = container.getId();
 
-    /**
-     * Removes a child Controller
-     */
-    public void removeChildController(Controller controller) {
-        for (int i = mChildControllers.size() - 1; i >= 0; i--) {
-            ChildControllerTransaction childTransaction = mChildControllers.get(i);
-            if (childTransaction.controller == controller) {
-                childTransaction.controller.destroy();
-
-                childTransaction.controller.mParentController = null;
-
-                if (controller.mView != null && controller.mView.getParent() != null) {
-                    ViewGroup container = (ViewGroup)controller.mView.getParent();
-                    ControllerChangeHandler.executeChange(null, controller, false, container, childTransaction.getPopControllerChangeHandler());
-                }
-
-                mChildControllers.remove(i);
+        ControllerHostedRouter childRouter = null;
+        for (ControllerHostedRouter router : mChildRouters) {
+            if (router.getHostId() == containerId && TextUtils.equals(tag, router.getTag())) {
+                childRouter = router;
                 break;
             }
+        }
+
+        if (childRouter == null) {
+            childRouter = new ControllerHostedRouter(container.getId(), tag);
+            monitorChildRouter(childRouter);
+            childRouter.setHost(this, container);
+            mChildRouters.add(childRouter);
+        } else if (!childRouter.hasHost()) {
+            childRouter.setHost(this, container);
+            childRouter.rebindIfNeeded();
+        }
+
+        return childRouter;
+    }
+
+    public final void removeChildRouter(@NonNull Router childRouter) {
+        if ((childRouter instanceof ControllerHostedRouter) && mChildRouters.remove(childRouter)) {
+            childRouter.destroy();
         }
     }
 
@@ -241,63 +248,34 @@ public abstract class Controller {
     }
 
     /**
-     * Returns the child Controller that was added with a given tag, if available.
-     *
-     * @param tag The tag that was initially passed in with the {@link ChildControllerTransaction}
-     * @return The matching child Controller, if one exists
-     */
-    public final Controller getChildController(String tag) {
-        for (ControllerTransaction transaction : mChildControllers) {
-            if (tag.equals(transaction.tag)) {
-                return transaction.controller;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns the child Controller with the given instance id, if available.
-     * @param instanceId The instance ID being searched for
-     * @return The matching child Controller, if one exists
-     * @deprecated Use {@link #getChildController(String)} or {@link #getChildControllers()} instead.
-     */
-    @Deprecated
-    public final Controller getChildControllerWithInstanceId(String instanceId) {
-        for (ControllerTransaction transaction : mChildControllers) {
-            if (transaction.controller.getInstanceId().equals(instanceId)) {
-                return transaction.controller;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Returns the Controller with the given instance id, if available.
      * May return the controller itself or a matching descendant
      * @param instanceId The instance ID being searched for
      * @return The matching Controller, if one exists
      */
     final Controller findController(String instanceId) {
-        if (mInstanceId.equals(instanceId))
+        if (mInstanceId.equals(instanceId)) {
             return this;
+        }
 
-        for (ControllerTransaction transaction : mChildControllers) {
-            Controller controllerWithId = transaction.controller.findController(instanceId);
-            if (controllerWithId != null)
-                return controllerWithId;
+        for (Router router : mChildRouters) {
+            Controller matchingChild = router.getControllerWithInstanceId(instanceId);
+            if (matchingChild != null) {
+                return matchingChild;
+            }
         }
         return null;
     }
 
     /**
-     * Returns all of this Controller's child Controllers
+     * Returns all of this Controller's child Routers
      */
-    public final List<Controller> getChildControllers() {
-        List<Controller> controllers = new ArrayList<>();
-        for (ControllerTransaction transaction : mChildControllers) {
-            controllers.add(transaction.controller);
+    public final List<Router> getChildRouters() {
+        List<Router> routers = new ArrayList<>();
+        for (Router router : mChildRouters) {
+            routers.add(router);
         }
-        return controllers;
+        return routers;
     }
 
     /**
@@ -426,7 +404,7 @@ public abstract class Controller {
      */
     public final void startActivity(final Intent intent) {
         executeWithRouter(new RouterRequiringFunc() {
-            @Override public void execute() { mRouter.getLifecycleHandler().startActivity(intent); }
+            @Override public void execute() { mRouter.startActivity(intent); }
         });
     }
 
@@ -435,7 +413,7 @@ public abstract class Controller {
      */
     public final void startActivityForResult(final Intent intent, final int requestCode) {
         executeWithRouter(new RouterRequiringFunc() {
-            @Override public void execute() { mRouter.getLifecycleHandler().startActivityForResult(mInstanceId, intent, requestCode); }
+            @Override public void execute() { mRouter.startActivityForResult(mInstanceId, intent, requestCode); }
         });
     }
 
@@ -444,7 +422,7 @@ public abstract class Controller {
      */
     public final void startActivityForResult(final Intent intent, final int requestCode, final Bundle options) {
         executeWithRouter(new RouterRequiringFunc() {
-            @Override public void execute() { mRouter.getLifecycleHandler().startActivityForResult(mInstanceId, intent, requestCode, options); }
+            @Override public void execute() { mRouter.startActivityForResult(mInstanceId, intent, requestCode, options); }
         });
     }
 
@@ -456,7 +434,7 @@ public abstract class Controller {
      */
     public final void registerForActivityResult(final int requestCode) {
         executeWithRouter(new RouterRequiringFunc() {
-            @Override public void execute() { mRouter.getLifecycleHandler().registerForActivityRequest(mInstanceId, requestCode); }
+            @Override public void execute() { mRouter.registerForActivityResult(mInstanceId, requestCode); }
         });
     }
 
@@ -480,7 +458,7 @@ public abstract class Controller {
         mRequestedPermissions.addAll(Arrays.asList(permissions));
 
         executeWithRouter(new RouterRequiringFunc() {
-            @Override public void execute() { mRouter.getLifecycleHandler().requestPermissions(mInstanceId, permissions, requestCode); }
+            @Override public void execute() { mRouter.requestPermissions(mInstanceId, permissions, requestCode); }
         });
     }
 
@@ -509,10 +487,10 @@ public abstract class Controller {
      * @return True if this Controller has consumed the back button press, otherwise false
      */
     public boolean handleBack() {
-        for (int i = mChildControllers.size() - 1; i >= 0; i--) {
-            ChildControllerTransaction transaction = mChildControllers.get(i);
-            if (transaction.addToLocalBackstack) {
-                removeChildController(transaction.controller);
+        Iterator<Controller> childIterator = mChildBackstack.descendingIterator();
+        while (childIterator.hasNext()) {
+            Controller childController = childIterator.next();
+            if (childController.isAttached() && childController.getRouter().handleBack()) {
                 return true;
             }
         }
@@ -650,7 +628,7 @@ public abstract class Controller {
         return false;
     }
 
-    final void prepareForActivityPause() {
+    final void prepareForHostDetach() {
         mNeedsAttach = mNeedsAttach || mAttached;
     }
 
@@ -677,10 +655,6 @@ public abstract class Controller {
                 listener.execute();
             }
             mOnRouterSetListeners.clear();
-
-            for (ChildControllerTransaction child : mChildControllers) {
-                child.controller.setRouter(router);
-            }
         } else {
             performOnRestoreInstanceState();
         }
@@ -694,36 +668,8 @@ public abstract class Controller {
         }
     }
 
-    private void addChildController(ChildControllerTransaction transaction, ControllerChangeHandler pushChangeHandler) {
-        if (transaction.controller.mParentController == null) {
-            transaction.controller.setRouter(mRouter);
-            transaction.controller.mParentController = this;
-            mChildControllers.add(transaction);
-        }
-
-        attachChildController(transaction, pushChangeHandler);
-    }
-
-    private void attachChildController(ChildControllerTransaction transaction, ControllerChangeHandler pushChangeHandler) {
-        if (mAttached) {
-            ViewGroup container = (ViewGroup)mView.findViewById(transaction.containerId);
-
-            if (container != null) {
-                View childView = transaction.controller.mView;
-                if (childView == null || childView.getParent() != container) {
-                    Controller to = transaction.controller;
-                    ControllerChangeHandler.executeChange(to, null, true, container, pushChangeHandler);
-                }
-            }
-        }
-    }
-
     final void activityStarted(Activity activity) {
         onActivityStarted(activity);
-
-        for (ChildControllerTransaction child : mChildControllers) {
-            child.controller.activityStarted(activity);
-        }
     }
 
     final void activityResumed(Activity activity) {
@@ -732,26 +678,14 @@ public abstract class Controller {
         }
 
         onActivityResumed(activity);
-
-        for (ChildControllerTransaction child : mChildControllers) {
-            child.controller.activityResumed(activity);
-        }
     }
 
     final void activityPaused(Activity activity) {
         onActivityPaused(activity);
-
-        for (ChildControllerTransaction child : mChildControllers) {
-            child.controller.activityPaused(activity);
-        }
     }
 
     final void activityStopped(Activity activity) {
         onActivityStopped(activity);
-
-        for (ChildControllerTransaction child : mChildControllers) {
-            child.controller.activityStopped(activity);
-        }
     }
 
     final void activityDestroyed(boolean isChangingConfigurations) {
@@ -759,10 +693,6 @@ public abstract class Controller {
             detach(mView, true);
         } else {
             destroy(true);
-        }
-
-        for (ChildControllerTransaction child : mChildControllers) {
-            child.controller.activityDestroyed(isChangingConfigurations);
         }
     }
 
@@ -776,10 +706,6 @@ public abstract class Controller {
         mAttached = true;
         mNeedsAttach = false;
 
-        for (ChildControllerTransaction child : mChildControllers) {
-            attachChildController(child, new SimpleSwapChangeHandler());
-        }
-
         onAttach(view);
 
         if (mHasOptionsMenu && !mOptionsMenuHidden) {
@@ -792,6 +718,10 @@ public abstract class Controller {
     }
 
     private void detach(@NonNull View view, boolean forceViewRefRemoval) {
+        for (ControllerHostedRouter router : mChildRouters) {
+            router.prepareForHostDetach();
+        }
+
         final boolean removeViewRef = forceViewRefRemoval || mRetainViewMode == RetainViewMode.RELEASE_DETACH || mIsBeingDestroyed;
 
         if (mAttached) {
@@ -806,13 +736,6 @@ public abstract class Controller {
                 mRouter.invalidateOptionsMenu();
             }
 
-            for (ChildControllerTransaction child : mChildControllers) {
-                ViewGroup container = (ViewGroup)mView.findViewById(child.containerId);
-                if (container != null) {
-                    container.removeView(child.controller.getView());
-                }
-            }
-            
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
                 lifecycleListener.postDetach(this, view);
             }
@@ -836,10 +759,15 @@ public abstract class Controller {
             onDestroyView(mView);
 
             mView.removeOnAttachStateChangeListener(mOnAttachStateChangeListener);
+            mViewIsAttached = false;
             mView = null;
 
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
                 lifecycleListener.postDestroyView(this);
+            }
+
+            for (ControllerHostedRouter childRouter : mChildRouters) {
+                childRouter.removeHost();
             }
         }
 
@@ -879,9 +807,13 @@ public abstract class Controller {
                 @Override
                 public void onViewDetachedFromWindow(View v) {
                     mViewIsAttached = false;
-                    detach(v, false);
+
+                    if (!mIsDetachFrozen) {
+                        detach(v, false);
+                    }
                 }
             };
+
             mView.addOnAttachStateChangeListener(mOnAttachStateChangeListener);
         }
 
@@ -897,10 +829,12 @@ public abstract class Controller {
             mDestroyed = true;
 
             if (mRouter != null) {
-                mRouter.getLifecycleHandler().unregisterForActivityRequests(mInstanceId);
+                mRouter.unregisterForActivityResults(mInstanceId);
             }
 
             onDestroy();
+
+            mParentController = null;
 
             for (LifecycleListener lifecycleListener : mLifecycleListeners) {
                 lifecycleListener.postDestroy(this);
@@ -915,8 +849,8 @@ public abstract class Controller {
     final void destroy(boolean removeViews) {
         mIsBeingDestroyed = true;
 
-        for (ChildControllerTransaction child : mChildControllers) {
-            child.controller.destroy(removeViews);
+        for (ControllerHostedRouter childRouter : mChildRouters) {
+            childRouter.destroy();
         }
 
         if (!mAttached) {
@@ -939,12 +873,6 @@ public abstract class Controller {
         onSaveViewState(view, stateBundle);
         mViewState.putBundle(KEY_VIEW_STATE_BUNDLE, stateBundle);
 
-        for (ChildControllerTransaction child : mChildControllers) {
-            if (child.controller.mView != null) {
-                child.controller.saveViewState(child.controller.mView);
-            }
-        }
-
         for (LifecycleListener lifecycleListener : mLifecycleListeners) {
             lifecycleListener.onSaveViewState(this, mViewState);
         }
@@ -955,9 +883,14 @@ public abstract class Controller {
             view.restoreHierarchyState(mViewState.getSparseParcelableArray(KEY_VIEW_STATE_HIERARCHY));
             onRestoreViewState(view, mViewState.getBundle(KEY_VIEW_STATE_BUNDLE));
 
-            for (ChildControllerTransaction child : mChildControllers) {
-                if (child.controller.mView != null) {
-                    child.controller.restoreViewState(child.controller.mView);
+            for (ControllerHostedRouter childRouter : mChildRouters) {
+                if (!childRouter.hasHost()) {
+                    View containerView = view.findViewById(childRouter.getHostId());
+
+                    if (containerView != null && containerView instanceof ViewGroup) {
+                        childRouter.setHost(this, (ViewGroup)containerView);
+                        childRouter.rebindIfNeeded();
+                    }
                 }
             }
 
@@ -989,10 +922,12 @@ public abstract class Controller {
         }
 
         ArrayList<Bundle> childBundles = new ArrayList<>();
-        for (ChildControllerTransaction childController : mChildControllers) {
-            childBundles.add(childController.saveInstanceState());
+        for (ControllerHostedRouter childRouter : mChildRouters) {
+            Bundle routerBundle = new Bundle();
+            childRouter.saveInstanceState(routerBundle);
+            childBundles.add(routerBundle);
         }
-        outState.putParcelableArrayList(KEY_CHILDREN, childBundles);
+        outState.putParcelableArrayList(KEY_CHILD_ROUTERS, childBundles);
 
         Bundle savedState = new Bundle();
         onSaveInstanceState(savedState);
@@ -1015,9 +950,12 @@ public abstract class Controller {
         mOverriddenPopHandler = ControllerChangeHandler.fromBundle(savedInstanceState.getBundle(KEY_OVERRIDDEN_POP_HANDLER));
         mNeedsAttach = savedInstanceState.getBoolean(KEY_NEEDS_ATTACH);
 
-        List<Bundle> childBundles = savedInstanceState.getParcelableArrayList(KEY_CHILDREN);
+        List<Bundle> childBundles = savedInstanceState.getParcelableArrayList(KEY_CHILD_ROUTERS);
         for (Bundle childBundle : childBundles) {
-            addChildController(new ChildControllerTransaction(childBundle));
+            ControllerHostedRouter childRouter = new ControllerHostedRouter();
+            childRouter.restoreInstanceState(childBundle);
+            monitorChildRouter(childRouter);
+            mChildRouters.add(childRouter);
         }
 
         mSavedInstanceState = savedInstanceState.getBundle(KEY_SAVED_STATE);
@@ -1037,6 +975,10 @@ public abstract class Controller {
     }
 
     final void changeStarted(ControllerChangeHandler changeHandler, ControllerChangeType changeType) {
+        for (ControllerHostedRouter router : mChildRouters) {
+            router.setDetachFrozen(true);
+        }
+
         onChangeStarted(changeHandler, changeType);
 
         for (LifecycleListener lifecycleListener : mLifecycleListeners) {
@@ -1045,6 +987,10 @@ public abstract class Controller {
     }
 
     final void changeEnded(ControllerChangeHandler changeHandler, ControllerChangeType changeType) {
+        for (ControllerHostedRouter router : mChildRouters) {
+            router.setDetachFrozen(false);
+        }
+
         onChangeEnded(changeHandler, changeType);
 
         for (LifecycleListener lifecycleListener : mLifecycleListeners) {
@@ -1052,14 +998,20 @@ public abstract class Controller {
         }
     }
 
+    final void setDetachFrozen(boolean frozen) {
+        if (mIsDetachFrozen != frozen) {
+            mIsDetachFrozen = frozen;
+
+            if (!frozen && mView != null && !mViewIsAttached) {
+                detach(mView, false);
+            }
+        }
+    }
+
     final void createOptionsMenu(Menu menu, MenuInflater inflater) {
         if (mAttached) {
             if (mHasOptionsMenu && !mOptionsMenuHidden) {
                 onCreateOptionsMenu(menu, inflater);
-            }
-
-            for (ChildControllerTransaction child : mChildControllers) {
-                child.controller.createOptionsMenu(menu, inflater);
             }
         }
     }
@@ -1069,10 +1021,6 @@ public abstract class Controller {
             if (mHasOptionsMenu && !mOptionsMenuHidden) {
                 onPrepareOptionsMenu(menu);
             }
-
-            for (ChildControllerTransaction child : mChildControllers) {
-                child.controller.onPrepareOptionsMenu(menu);
-            }
         }
     }
 
@@ -1081,14 +1029,37 @@ public abstract class Controller {
             if (mHasOptionsMenu && !mOptionsMenuHidden && onOptionsItemSelected(item)) {
                 return true;
             }
-
-            for (ChildControllerTransaction child : mChildControllers) {
-                if (child.controller.onOptionsItemSelected(item)) {
-                    return true;
-                }
-            }
         }
         return false;
+    }
+
+    private void monitorChildRouter(ControllerHostedRouter childRouter) {
+        //TODO: is this even triggered on restoration?
+        childRouter.addChangeListener(new ControllerChangeListener() {
+            @Override
+            public void onChangeStarted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
+                if (isPush) {
+                    onChildControllerPushed(to);
+                }
+            }
+
+            @Override
+            public void onChangeCompleted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) { }
+        });
+    }
+
+    private void onChildControllerPushed(Controller controller) {
+        mChildBackstack.add(controller);
+        controller.addLifecycleListener(new LifecycleListener() {
+            @Override
+            public void postDestroy(@NonNull Controller controller) {
+                mChildBackstack.remove(controller);
+            }
+        });
+    }
+
+    final void setParentController(Controller controller) {
+        mParentController = controller;
     }
 
     private void ensureRequiredConstructor() {

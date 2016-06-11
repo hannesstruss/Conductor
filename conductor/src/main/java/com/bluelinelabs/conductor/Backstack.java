@@ -5,6 +5,7 @@ import android.os.Bundle;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,7 +13,7 @@ class Backstack implements Iterable<RouterTransaction> {
 
     private static final String KEY_ENTRIES = "Backstack.entries";
 
-    private final ArrayDeque<RouterTransaction> mBackStack = new ArrayDeque<>();
+    private final Deque<RouterTransaction> mBackStack = new ArrayDeque<>();
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isEmpty() {

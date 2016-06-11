@@ -16,6 +16,8 @@ import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
 public class TestController extends Controller {
 
     @IdRes public static final int VIEW_ID = 2342;
+    @IdRes public static final int CHILD_VIEW_ID_1 = 2343;
+    @IdRes public static final int CHILD_VIEW_ID_2 = 2344;
 
     private static final String KEY_CALL_STATE = "TestController.currentCallState";
 
@@ -29,8 +31,17 @@ public class TestController extends Controller {
     @Override
     protected View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
         currentCallState.createViewCalls++;
-        View view = new FrameLayout(inflater.getContext());
+        FrameLayout view = new FrameLayout(inflater.getContext());
         view.setId(VIEW_ID);
+
+        FrameLayout childContainer1 = new FrameLayout(inflater.getContext());
+        childContainer1.setId(CHILD_VIEW_ID_1);
+        view.addView(childContainer1);
+
+        FrameLayout childContainer2 = new FrameLayout(inflater.getContext());
+        childContainer2.setId(CHILD_VIEW_ID_2);
+        view.addView(childContainer2);
+
         return view;
     }
 

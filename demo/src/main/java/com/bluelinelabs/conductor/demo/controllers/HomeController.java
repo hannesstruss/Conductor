@@ -22,7 +22,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bluelinelabs.conductor.ChildControllerTransaction;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.RouterTransaction;
@@ -39,12 +38,13 @@ public class HomeController extends BaseController {
     public enum HomeDemoModel {
         NAVIGATION("Navigation Demos", R.color.red_300),
         TRANSITIONS("Transition Demos", R.color.blue_grey_300),
-        OVERLAY("Overlay Controller", R.color.purple_300),
         CHILD_CONTROLLERS("Child Controllers", R.color.orange_300),
         VIEW_PAGER("ViewPager", R.color.green_300),
         TARGET_CONTROLLER("Target Controller", R.color.pink_300),
+        BOTTOM_BAR("Bottom Bar", R.color.deep_orange_300),
         DRAG_DISMISS("Drag Dismiss", R.color.lime_300),
-        RX_LIFECYCLE("Rx Lifecycle", R.color.teal_300);
+        RX_LIFECYCLE("Rx Lifecycle", R.color.teal_300),
+        OVERLAY("Overlay Controller", R.color.purple_300);
 
         String title;
         @ColorRes int color;
@@ -56,6 +56,7 @@ public class HomeController extends BaseController {
     }
 
     @Bind(R.id.recycler_view) RecyclerView mRecyclerView;
+    @Bind(R.id.overlay_root) ViewGroup mOverlayRoot;
 
     public HomeController() {
         setHasOptionsMenu(true);
@@ -79,7 +80,7 @@ public class HomeController extends BaseController {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-       inflater.inflate(R.menu.home, menu);
+        inflater.inflate(R.menu.home, menu);
     }
 
     @Override
@@ -113,11 +114,12 @@ public class HomeController extends BaseController {
             content.append("\n\n");
             content.append(link);
 
-            addChildController(ChildControllerTransaction.builder(new OverlayController(content), R.id.home_root)
-                    .pushChangeHandler(new FadeChangeHandler())
-                    .popChangeHandler(new FadeChangeHandler())
-                    .addToLocalBackstack(true)
-                    .build());
+            getChildRouter(mOverlayRoot, null)
+                    .setPopsLastView(true)
+                    .setRoot(RouterTransaction.builder(new OverlayController(content))
+                            .pushChangeHandler(new FadeChangeHandler())
+                            .popChangeHandler(new FadeChangeHandler())
+                            .build());
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -159,11 +161,12 @@ public class HomeController extends BaseController {
                         .build());
                 break;
             case OVERLAY:
-                addChildController(ChildControllerTransaction.builder(new OverlayController("I'm an Overlay!"), R.id.home_root)
-                        .pushChangeHandler(new FadeChangeHandler())
-                        .popChangeHandler(new FadeChangeHandler())
-                        .addToLocalBackstack(true)
-                        .build());
+                getChildRouter(mOverlayRoot, null)
+                        .setPopsLastView(true)
+                        .setRoot(RouterTransaction.builder(new OverlayController("I'm an overlay!"))
+                                .pushChangeHandler(new FadeChangeHandler())
+                                .popChangeHandler(new FadeChangeHandler())
+                                .build());
                 break;
             case DRAG_DISMISS:
                 getRouter().pushController(RouterTransaction.builder(new DragDismissController())
@@ -173,6 +176,12 @@ public class HomeController extends BaseController {
                 break;
             case RX_LIFECYCLE:
                 getRouter().pushController(RouterTransaction.builder(new RxLifecycleController())
+                        .pushChangeHandler(new FadeChangeHandler())
+                        .popChangeHandler(new FadeChangeHandler())
+                        .build());
+                break;
+            case BOTTOM_BAR:
+                getRouter().pushController(RouterTransaction.builder(new BottomNavigationParentController())
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler())
                         .build());

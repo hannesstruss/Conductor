@@ -38,7 +38,7 @@ public class ControllerLifecycleTests {
 
         mRouter = Conductor.attachRouter(mActivityController.get(), routerContainer, savedInstanceState);
         if (!mRouter.hasRootController()) {
-            mRouter.setRoot(new TestController());
+            mRouter.setRoot(RouterTransaction.builder(new TestController()).build());
         }
     }
 
@@ -60,8 +60,7 @@ public class ControllerLifecycleTests {
         mRouter.pushController(RouterTransaction.builder(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller))
                 .popChangeHandler(getPopHandler(expectedCallState, controller))
-                .build()
-        );
+                .build());
 
         assertCalls(expectedCallState, controller);
 
@@ -82,8 +81,7 @@ public class ControllerLifecycleTests {
         assertCalls(expectedCallState, controller);
         mRouter.pushController(RouterTransaction.builder(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller))
-                .build()
-        );
+                .build());
 
         assertCalls(expectedCallState, controller);
 
@@ -114,8 +112,7 @@ public class ControllerLifecycleTests {
         mRouter.pushController(RouterTransaction.builder(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller))
                 .tag("root")
-                .build()
-        );
+                .build());
 
         assertCalls(expectedCallState, controller);
 
@@ -171,8 +168,7 @@ public class ControllerLifecycleTests {
         assertCalls(expectedCallState, controller);
         mRouter.pushController(RouterTransaction.builder(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller))
-                .build()
-        );
+                .build());
 
         assertCalls(expectedCallState, controller);
 
@@ -434,15 +430,16 @@ public class ControllerLifecycleTests {
 
         assertCalls(expectedCallState, child);
 
-        parent.addChildController(ChildControllerTransaction.builder(child, TestController.VIEW_ID)
-                .pushChangeHandler(getPushHandler(expectedCallState, child))
-                .popChangeHandler(getPopHandler(expectedCallState, child))
-                .build()
-        );
+        Router childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null);
+            childRouter
+                .setRoot(RouterTransaction.builder(child)
+                        .pushChangeHandler(getPushHandler(expectedCallState, child))
+                        .popChangeHandler(getPopHandler(expectedCallState, child))
+                        .build());
 
         assertCalls(expectedCallState, child);
 
-        parent.removeChildController(child);
+        parent.removeChildRouter(childRouter);
 
         assertCalls(expectedCallState, child);
     }
@@ -476,20 +473,17 @@ public class ControllerLifecycleTests {
 
         assertCalls(expectedCallState, child);
 
-        parent.addChildController(ChildControllerTransaction.builder(child, TestController.VIEW_ID)
-                .pushChangeHandler(getPushHandler(expectedCallState, child))
-                .popChangeHandler(getPopHandler(expectedCallState, child))
-                .build()
-        );
+        Router childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null);
+        childRouter
+                .setRoot(RouterTransaction.builder(child)
+                        .pushChangeHandler(getPushHandler(expectedCallState, child))
+                        .popChangeHandler(getPopHandler(expectedCallState, child))
+                        .build());
 
         assertCalls(expectedCallState, child);
 
         mRouter.popCurrentController();
-        ViewUtils.setAttached(child.getView(), false);
 
-        expectedCallState.detachCalls++;
-        expectedCallState.destroyViewCalls++;
-        expectedCallState.destroyCalls++;
         assertCalls(expectedCallState, child);
     }
 

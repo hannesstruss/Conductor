@@ -34,4 +34,9 @@
     <string name="next_controller_retain">Push Controller, retaining this View</string>
     <string name="next_controller_release">Push Controller, releasing this View</string>
 
+    <!-- Bottom Nav Demo -->
+    <string name="groups">Groups</string>
+    <string name="places">Places</string>
+    <string name="favorites">Favorites</string>
+
 </resources>
