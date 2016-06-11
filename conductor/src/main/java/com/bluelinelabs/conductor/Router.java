@@ -238,18 +238,7 @@ public class Router {
      */
     public void setRoot(@NonNull Controller controller, String tag, ControllerChangeHandler changeHandler) {
         RouterTransaction currentTop = mBackStack.peek();
-
-        if (currentTop != null && currentTop.controller.getView() != null) {
-            final View fromView = currentTop.controller.getView();
-
-            final int childCount = mContainer.getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                final View child = mContainer.getChildAt(i);
-                if (child != fromView) {
-                    mContainer.removeView(child);
-                }
-            }
-        }
+        removeViewsFromContainerExcept(currentTop);
 
         trackDestroyingControllers(mBackStack.popAll());
 
@@ -272,9 +261,9 @@ public class Router {
     public Controller getControllerWithInstanceId(String instanceId) {
         for (ControllerTransaction transaction : mBackStack) {
             Controller controllerWithId = transaction.controller.findController(instanceId);
-                if (controllerWithId != null) {
-                    return controllerWithId;
-                }
+            if (controllerWithId != null) {
+                return controllerWithId;
+            }
         }
         return null;
     }
@@ -299,6 +288,42 @@ public class Router {
      */
     public int getBackstackSize() {
         return mBackStack.size();
+    }
+
+    /**
+     * Returns the current backstack, ordered from root to most recently pushed.
+     */
+    public List<RouterTransaction> getBackstack() {
+        List<RouterTransaction> list = new ArrayList<>();
+        Iterator<RouterTransaction> backstackIterator = mBackStack.reverseIterator();
+        while (backstackIterator.hasNext()) {
+            list.add(backstackIterator.next());
+        }
+        return list;
+    }
+
+    /**
+     * Sets the backstack, transitioning from the current top controller to the top of the new stack (if different)
+     * using the passed {@link ControllerChangeHandler}
+     *
+     * @param backstack The new backstack
+     * @param changeHandler An optional change handler to be used to handle the transition
+     */
+    public void setBackstack(@NonNull List<RouterTransaction> backstack, ControllerChangeHandler changeHandler) {
+        RouterTransaction oldTopTransaction = mBackStack.peek();
+        Controller oldTop = oldTopTransaction != null ? oldTopTransaction.controller : null;
+        removeViewsFromContainerExcept(oldTopTransaction);
+
+        if (backstack.size() > 0) {
+            Controller newTop = backstack.get(backstack.size() - 1).controller;
+
+            if (newTop != oldTop) {
+                ControllerChangeHandler handler = changeHandler != null ? changeHandler : new SimpleSwapChangeHandler();
+                performControllerChange(newTop, oldTop, true, handler);
+            }
+        }
+
+        mBackStack.setBackstack(backstack);
     }
 
     /**
@@ -527,6 +552,17 @@ public class Router {
     private void trackDestroyingControllers(List<RouterTransaction> transactions) {
         for (RouterTransaction transaction : transactions) {
             trackDestroyingController(transaction);
+        }
+    }
+
+    private void removeViewsFromContainerExcept(RouterTransaction transaction) {
+        final View fromView = transaction != null ? transaction.controller.getView() : null;
+        final int childCount = mContainer.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            final View child = mContainer.getChildAt(i);
+            if (child != fromView) {
+                mContainer.removeView(child);
+            }
         }
     }
 

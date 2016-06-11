@@ -75,6 +75,27 @@ class Backstack implements Iterable<RouterTransaction> {
         return list;
     }
 
+    public void setBackstack(List<RouterTransaction> backstack) {
+        for (RouterTransaction existingTransaction : mBackStack) {
+            boolean contains = false;
+            for (RouterTransaction newTransaction : backstack) {
+                if (existingTransaction.controller == newTransaction.controller) {
+                    contains = true;
+                    break;
+                }
+            }
+
+            if (!contains) {
+                existingTransaction.controller.destroy();
+            }
+        }
+
+        mBackStack.clear();
+        for (RouterTransaction transaction : backstack) {
+            mBackStack.push(transaction);
+        }
+    }
+
     public void saveInstanceState(Bundle outState) {
         ArrayList<Bundle> entryBundles = new ArrayList<>(mBackStack.size());
         for (RouterTransaction entry : mBackStack) {
