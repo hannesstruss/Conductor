@@ -2,9 +2,6 @@ package com.bluelinelabs.conductor.demo.controllers;
 
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.TabLayout.OnTabSelectedListener;
-import android.support.design.widget.TabLayout.Tab;
-import android.support.design.widget.TabLayout.TabLayoutOnPageChangeListener;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,7 +24,7 @@ public class PagerController extends BaseController {
     private final ControllerPagerAdapter mPagerAdapter;
 
     public PagerController() {
-        mPagerAdapter = new ControllerPagerAdapter(this) {
+        mPagerAdapter = new ControllerPagerAdapter(this, false) {
             @Override
             public Controller getItem(int position) {
                 return new ChildController(String.format("Child #%d (Swipe to see more)", position), PAGE_COLORS[position], true);
@@ -48,22 +45,8 @@ public class PagerController extends BaseController {
     @Override
     protected void onViewBound(@NonNull View view) {
         super.onViewBound(view);
-        mTabLayout.setTabsFromPagerAdapter(mPagerAdapter);
         mViewPager.setAdapter(mPagerAdapter);
-
-        mViewPager.addOnPageChangeListener(new TabLayoutOnPageChangeListener(mTabLayout));
-        mTabLayout.setOnTabSelectedListener(new OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(Tab tab) {
-                mViewPager.setCurrentItem(tab.getPosition());
-            }
-
-            @Override
-            public void onTabUnselected(Tab tab) { }
-
-            @Override
-            public void onTabReselected(Tab tab) { }
-        });
+        mTabLayout.setupWithViewPager(mViewPager);
     }
 
     @Override

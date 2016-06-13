@@ -341,7 +341,7 @@ public abstract class Router {
     /**
      * Attaches this Router's existing backstack to its container if one exists.
      */
-    void rebindIfNeeded() {
+    public void rebindIfNeeded() {
         Iterator<RouterTransaction> backstackIterator = mBackStack.reverseIterator();
         while (backstackIterator.hasNext()) {
             RouterTransaction transaction = backstackIterator.next();
