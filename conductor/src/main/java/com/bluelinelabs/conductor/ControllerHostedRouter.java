@@ -9,6 +9,9 @@ import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ControllerHostedRouter extends Router {
 
     private final String KEY_HOST_ID = "ControllerHostedRouter.hostId";
@@ -155,5 +158,13 @@ public class ControllerHostedRouter extends Router {
 
     public String getTag() {
         return mTag;
+    }
+
+    @Override
+    List<Router> getSiblingRouters() {
+        List<Router> list = new ArrayList<>();
+        list.addAll(mHostController.getChildRouters());
+        list.addAll(mHostController.getRouter().getSiblingRouters());
+        return list;
     }
 }

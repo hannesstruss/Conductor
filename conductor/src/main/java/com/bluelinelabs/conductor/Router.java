@@ -229,7 +229,7 @@ public abstract class Router {
      */
     public void setRoot(@NonNull RouterTransaction transaction) {
         RouterTransaction currentTop = mBackStack.peek();
-        removeViewsFromContainerExcept(currentTop);
+        removeAllExceptTopAndUnowned();
 
         trackDestroyingControllers(mBackStack.popAll());
 
@@ -297,7 +297,7 @@ public abstract class Router {
     public void setBackstack(@NonNull List<RouterTransaction> backstack, ControllerChangeHandler changeHandler) {
         RouterTransaction oldTopTransaction = mBackStack.peek();
         Controller oldTop = oldTopTransaction != null ? oldTopTransaction.controller : null;
-        removeViewsFromContainerExcept(oldTopTransaction);
+        removeAllExceptTopAndUnowned();
 
         if (backstack.size() > 0) {
             Controller newTop = backstack.get(backstack.size() - 1).controller;
@@ -571,13 +571,38 @@ public abstract class Router {
         }
     }
 
-    private void removeViewsFromContainerExcept(RouterTransaction transaction) {
-        final View fromView = transaction != null ? transaction.controller.getView() : null;
+    private void removeAllExceptTopAndUnowned() {
+        List<View> views = new ArrayList<>();
+
+        RouterTransaction topTransaction = mBackStack.peek();
+        final View topView = topTransaction != null ? topTransaction.controller.getView() : null;
+        if (topView != null) {
+            views.add(topView);
+        }
+
+        for (Router router : getSiblingRouters()) {
+            if (router.mContainer == mContainer) {
+                addViewsFromRouter(router, views);
+            }
+        }
+
         final int childCount = mContainer.getChildCount();
         for (int i = 0; i < childCount; i++) {
             final View child = mContainer.getChildAt(i);
-            if (child != fromView) {
+            if (!views.contains(child)) {
                 mContainer.removeView(child);
+            }
+        }
+    }
+
+    private void addViewsFromRouter(Router router, List<View> list) {
+        for (Controller controller : router.getControllers()) {
+            if (controller.getView() != null) {
+                list.add(controller.getView());
+            }
+
+            for (Router child : controller.getChildRouters()) {
+                addViewsFromRouter(child, list);
             }
         }
     }
@@ -594,4 +619,5 @@ public abstract class Router {
     abstract void unregisterForActivityResults(String instanceId);
     abstract void requestPermissions(String instanceId, String[] permissions, int requestCode);
     abstract boolean hasHost();
+    abstract List<Router> getSiblingRouters();
 }

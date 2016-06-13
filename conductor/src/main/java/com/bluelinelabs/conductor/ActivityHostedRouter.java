@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
 import com.bluelinelabs.conductor.internal.LifecycleHandler;
 
+import java.util.List;
+
 public class ActivityHostedRouter extends Router {
 
     private LifecycleHandler mLifecycleHandler;
@@ -84,5 +86,10 @@ public class ActivityHostedRouter extends Router {
     @Override
     boolean hasHost() {
         return mLifecycleHandler != null;
+    }
+
+    @Override
+    List<Router> getSiblingRouters() {
+        return mLifecycleHandler.getRouters();
     }
 }

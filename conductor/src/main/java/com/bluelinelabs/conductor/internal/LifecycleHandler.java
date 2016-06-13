@@ -18,7 +18,9 @@ import android.view.ViewGroup;
 import com.bluelinelabs.conductor.ActivityHostedRouter;
 import com.bluelinelabs.conductor.Router;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class LifecycleHandler extends Fragment implements ActivityLifecycleCallbacks {
@@ -75,6 +77,10 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
 
         return router;
+    }
+
+    public List<Router> getRouters() {
+        return new ArrayList<Router>(mRouterMap.values());
     }
 
     public Activity getLifecycleActivity() {
