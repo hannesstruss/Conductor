@@ -42,6 +42,7 @@ public class HomeController extends BaseController {
         VIEW_PAGER("ViewPager", R.color.green_300),
         TARGET_CONTROLLER("Target Controller", R.color.pink_300),
         MULTIPLE_CHILD_ROUTERS("Multiple Child Routers", R.color.deep_orange_300),
+        MASTER_DETAIL("Master Detail", R.color.grey_300),
         DRAG_DISMISS("Drag Dismiss", R.color.lime_300),
         RX_LIFECYCLE("Rx Lifecycle", R.color.teal_300),
         OVERLAY("Overlay Controller", R.color.purple_300);
@@ -182,6 +183,11 @@ public class HomeController extends BaseController {
                 break;
             case MULTIPLE_CHILD_ROUTERS:
                 getRouter().pushController(RouterTransaction.builder(new MultipleChildRouterController())
+                        .pushChangeHandler(new FadeChangeHandler())
+                        .popChangeHandler(new FadeChangeHandler())
+                        .build());
+            case MASTER_DETAIL:
+                getRouter().pushController(RouterTransaction.builder(new MasterDetailListController())
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler())
                         .build());
