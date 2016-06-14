@@ -10,7 +10,7 @@ import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class TargetTitleEntryController extends BaseController {
@@ -19,7 +19,7 @@ public class TargetTitleEntryController extends BaseController {
         void onTitlePicked(String option);
     }
 
-    @Bind(R.id.edit_text) EditText mEditText;
+    @BindView(R.id.edit_text) EditText mEditText;
 
     public <T extends Controller & TargetTitleEntryControllerListener> TargetTitleEntryController(T targetController) {
         setTargetController(targetController);

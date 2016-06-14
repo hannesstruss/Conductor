@@ -14,7 +14,7 @@ import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 import com.bluelinelabs.conductor.demo.util.BundleBuilder;
 import com.bluelinelabs.conductor.demo.util.ColorUtil;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class NavigationDemoController extends BaseController {
@@ -22,20 +22,24 @@ public class NavigationDemoController extends BaseController {
     public static final String TAG_UP_TRANSACTION = "NavigationDemoController.up";
 
     private static final String KEY_INDEX = "NavigationDemoController.index";
+    private static final String KEY_DISPLAY_UP = "NavigationDemoController.displayUp";
 
-    @Bind(R.id.tv_title) TextView mTvTitle;
+    @BindView(R.id.tv_title) TextView mTvTitle;
 
     private int mIndex;
+    private boolean mDisplayUp;
 
-    public NavigationDemoController(int index) {
+    public NavigationDemoController(int index, boolean displayUpButton) {
         this(new BundleBuilder(new Bundle())
                 .putInt(KEY_INDEX, index)
+                .putBoolean(KEY_DISPLAY_UP, displayUpButton)
                 .build());
     }
 
     public NavigationDemoController(Bundle args) {
         super(args);
         mIndex = args.getInt(KEY_INDEX);
+        mDisplayUp = args.getBoolean(KEY_DISPLAY_UP);
     }
 
     @NonNull
@@ -48,6 +52,10 @@ public class NavigationDemoController extends BaseController {
     protected void onViewBound(@NonNull View view) {
         super.onViewBound(view);
 
+        if (!mDisplayUp) {
+            view.findViewById(R.id.btn_up).setVisibility(View.GONE);
+        }
+
         view.setBackgroundColor(ColorUtil.getMaterialColor(getResources(), mIndex));
         mTvTitle.setText(getResources().getString(R.string.navigation_title, mIndex));
     }
@@ -58,7 +66,7 @@ public class NavigationDemoController extends BaseController {
     }
 
     @OnClick(R.id.btn_next) void onNextClicked() {
-        getRouter().pushController(RouterTransaction.builder(new NavigationDemoController(mIndex + 1))
+        getRouter().pushController(RouterTransaction.builder(new NavigationDemoController(mIndex + 1, mDisplayUp))
                 .pushChangeHandler(new HorizontalChangeHandler())
                 .popChangeHandler(new HorizontalChangeHandler())
                 .build()

@@ -12,14 +12,14 @@ import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 import com.bluelinelabs.conductor.support.ControllerPagerAdapter;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 public class PagerController extends BaseController {
 
     private int[] PAGE_COLORS = new int[]{R.color.green_300, R.color.cyan_300, R.color.deep_purple_300, R.color.lime_300, R.color.red_300};
 
-    @Bind(R.id.tab_layout) TabLayout mTabLayout;
-    @Bind(R.id.view_pager) ViewPager mViewPager;
+    @BindView(R.id.tab_layout) TabLayout mTabLayout;
+    @BindView(R.id.view_pager) ViewPager mViewPager;
 
     private final ControllerPagerAdapter mPagerAdapter;
 

@@ -19,7 +19,7 @@ import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.TargetTitleEntryController.TargetTitleEntryControllerListener;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class TargetDisplayController extends BaseController implements TargetTitleEntryControllerListener {
@@ -29,8 +29,8 @@ public class TargetDisplayController extends BaseController implements TargetTit
     private static final String KEY_SELECTED_TEXT = "TargetDisplayController.selectedText";
     private static final String KEY_SELECTED_IMAGE = "TargetDisplayController.selectedImage";
 
-    @Bind(R.id.tv_selection) TextView mTvSelection;
-    @Bind(R.id.image_view) ImageView mImageView;
+    @BindView(R.id.tv_selection) TextView mTvSelection;
+    @BindView(R.id.image_view) ImageView mImageView;
 
     private String mSelectedText;
     private Uri mImageUri;

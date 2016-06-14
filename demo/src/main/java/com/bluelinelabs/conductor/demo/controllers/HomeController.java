@@ -29,7 +29,7 @@ import com.bluelinelabs.conductor.changehandler.FadeChangeHandler;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -41,7 +41,7 @@ public class HomeController extends BaseController {
         CHILD_CONTROLLERS("Child Controllers", R.color.orange_300),
         VIEW_PAGER("ViewPager", R.color.green_300),
         TARGET_CONTROLLER("Target Controller", R.color.pink_300),
-        BOTTOM_BAR("Bottom Bar", R.color.deep_orange_300),
+        MULTIPLE_CHILD_ROUTERS("Multiple Child Routers", R.color.deep_orange_300),
         DRAG_DISMISS("Drag Dismiss", R.color.lime_300),
         RX_LIFECYCLE("Rx Lifecycle", R.color.teal_300),
         OVERLAY("Overlay Controller", R.color.purple_300);
@@ -55,8 +55,8 @@ public class HomeController extends BaseController {
         }
     }
 
-    @Bind(R.id.recycler_view) RecyclerView mRecyclerView;
-    @Bind(R.id.overlay_root) ViewGroup mOverlayRoot;
+    @BindView(R.id.recycler_view) RecyclerView mRecyclerView;
+    @BindView(R.id.overlay_root) ViewGroup mOverlayRoot;
 
     public HomeController() {
         setHasOptionsMenu(true);
@@ -133,7 +133,7 @@ public class HomeController extends BaseController {
     void onModelRowClick(HomeDemoModel model) {
         switch (model) {
             case NAVIGATION:
-                getRouter().pushController(RouterTransaction.builder(new NavigationDemoController(0))
+                getRouter().pushController(RouterTransaction.builder(new NavigationDemoController(0, true))
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler())
                         .tag(NavigationDemoController.TAG_UP_TRANSACTION)
@@ -180,8 +180,8 @@ public class HomeController extends BaseController {
                         .popChangeHandler(new FadeChangeHandler())
                         .build());
                 break;
-            case BOTTOM_BAR:
-                getRouter().pushController(RouterTransaction.builder(new BottomNavigationParentController())
+            case MULTIPLE_CHILD_ROUTERS:
+                getRouter().pushController(RouterTransaction.builder(new MultipleChildRouterController())
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler())
                         .build());
@@ -216,8 +216,8 @@ public class HomeController extends BaseController {
 
         class ViewHolder extends RecyclerView.ViewHolder {
 
-            @Bind(R.id.tv_title) TextView mTvTitle;
-            @Bind(R.id.img_dot) ImageView mImgDot;
+            @BindView(R.id.tv_title) TextView mTvTitle;
+            @BindView(R.id.img_dot) ImageView mImgDot;
             private HomeDemoModel mModel;
 
             public ViewHolder(View itemView) {

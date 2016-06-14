@@ -25,7 +25,7 @@ import com.bluelinelabs.conductor.demo.changehandler.FlipChangeHandler;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 import com.bluelinelabs.conductor.demo.util.BundleBuilder;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -56,9 +56,9 @@ public class TransitionDemoController extends BaseController {
         }
     }
 
-    @Bind(R.id.tv_title) TextView mTvTitle;
-    @Bind(R.id.btn_next) FloatingActionButton mBtnNext;
-    @Bind(R.id.transition_root) View mContainerView;
+    @BindView(R.id.tv_title) TextView mTvTitle;
+    @BindView(R.id.btn_next) FloatingActionButton mBtnNext;
+    @BindView(R.id.transition_root) View mContainerView;
 
     private TransitionDemo mTransitionDemo;
 

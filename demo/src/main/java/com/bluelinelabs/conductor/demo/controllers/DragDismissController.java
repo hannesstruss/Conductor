@@ -14,12 +14,12 @@ import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 import com.bluelinelabs.conductor.demo.widget.ElasticDragDismissFrameLayout;
 import com.bluelinelabs.conductor.demo.widget.ElasticDragDismissFrameLayout.ElasticDragDismissCallback;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 @TargetApi(VERSION_CODES.LOLLIPOP)
 public class DragDismissController extends BaseController {
 
-    @Bind(R.id.tv_lorem_ipsum) TextView mTvLoremIpsum;
+    @BindView(R.id.tv_lorem_ipsum) TextView mTvLoremIpsum;
 
     private final ElasticDragDismissCallback mDragDismissListener = new ElasticDragDismissCallback() {
         @Override

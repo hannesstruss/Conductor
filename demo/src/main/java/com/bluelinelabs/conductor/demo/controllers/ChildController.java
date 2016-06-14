@@ -8,11 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.bluelinelabs.conductor.demo.util.BundleBuilder;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
+import com.bluelinelabs.conductor.demo.util.BundleBuilder;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 public class ChildController extends BaseController {
 
@@ -20,7 +20,7 @@ public class ChildController extends BaseController {
     private static final String KEY_BG_COLOR = "ChildController.bgColor";
     private static final String KEY_COLOR_IS_RES = "ChildController.colorIsResId";
 
-    @Bind(R.id.tv_title) TextView mTvTitle;
+    @BindView(R.id.tv_title) TextView mTvTitle;
 
     public ChildController(String title, int backgroundColor, boolean colorIsResId) {
         this(new BundleBuilder(new Bundle())

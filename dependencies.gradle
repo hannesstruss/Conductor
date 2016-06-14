@@ -9,12 +9,11 @@ ext {
     supportAnnotations = 'com.android.support:support-annotations:23.1.1'
     supportAppCompat = 'com.android.support:appcompat-v7:23.1.1'
 
-    butterknife = 'com.jakewharton:butterknife:7.0.1'
+    butterknife = 'com.jakewharton:butterknife:8.0.1'
+    butterknifeCompiler = 'com.jakewharton:butterknife-compiler:8.0.1'
 
     leakCanary = 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     leakCanaryNoOp = 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
-
-    bottomNav = 'com.aurelhubert:ahbottomnavigation:1.1.8'
 
     rxJava = 'io.reactivex:rxjava:1.1.0'
     rxAndroid = 'io.reactivex:rxandroid:1.1.0'

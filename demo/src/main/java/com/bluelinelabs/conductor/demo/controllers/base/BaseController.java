@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.view.View;
 
+import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.demo.ActionBarProvider;
 
 public abstract class BaseController extends RefWatchingController {
@@ -29,6 +30,14 @@ public abstract class BaseController extends RefWatchingController {
     }
 
     protected void setTitle() {
+        Controller parentController = getParentController();
+        while (parentController != null) {
+            if (parentController instanceof BaseController && ((BaseController)parentController).getTitle() != null) {
+                return;
+            }
+            parentController = parentController.getParentController();
+        }
+
         String title = getTitle();
         ActionBar actionBar = getActionBar();
         if (title != null && actionBar != null) {

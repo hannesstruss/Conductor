@@ -15,7 +15,7 @@ import com.bluelinelabs.conductor.rxlifecycle.ControllerEvent;
 
 import java.util.concurrent.TimeUnit;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.functions.Action0;
@@ -27,7 +27,7 @@ public class RxLifecycleController extends BaseController {
 
     private static final String TAG = "RxLifecycleController";
 
-    @Bind(R.id.tv_title) TextView mTvTitle;
+    @BindView(R.id.tv_title) TextView mTvTitle;
 
     public RxLifecycleController() {
 
