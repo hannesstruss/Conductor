@@ -400,7 +400,7 @@ public abstract class Router {
     }
 
     public void onActivityDestroyed(Activity activity) {
-        mContainer.setOnHierarchyChangeListener(null);
+        prepareForContainerRemoval();
         mChangeListeners.clear();
 
         for (RouterTransaction transaction : mBackStack) {
@@ -499,6 +499,12 @@ public abstract class Router {
         }
     }
 
+    void prepareForContainerRemoval() {
+        if (mContainer != null) {
+            mContainer.setOnHierarchyChangeListener(null);
+        }
+    }
+
     final List<Controller> getControllers() {
         List<Controller> controllers = new ArrayList<>();
 
@@ -582,7 +588,7 @@ public abstract class Router {
 
         for (Router router : getSiblingRouters()) {
             if (router.mContainer == mContainer) {
-                addViewsFromRouter(router, views);
+                addRouterViewsToList(router, views);
             }
         }
 
@@ -595,14 +601,14 @@ public abstract class Router {
         }
     }
 
-    private void addViewsFromRouter(Router router, List<View> list) {
+    private void addRouterViewsToList(Router router, List<View> list) {
         for (Controller controller : router.getControllers()) {
             if (controller.getView() != null) {
                 list.add(controller.getView());
             }
 
             for (Router child : controller.getChildRouters()) {
-                addViewsFromRouter(child, list);
+                addRouterViewsToList(child, list);
             }
         }
     }

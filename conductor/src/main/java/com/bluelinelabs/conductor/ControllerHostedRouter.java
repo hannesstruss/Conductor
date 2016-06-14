@@ -47,6 +47,7 @@ public class ControllerHostedRouter extends Router {
             removeChangeListener((ControllerChangeListener)mContainer);
         }
 
+        prepareForContainerRemoval();
         mHostController = null;
         mContainer = null;
     }

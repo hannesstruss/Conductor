@@ -66,6 +66,7 @@ public abstract class Controller {
     private boolean mHasOptionsMenu;
     private boolean mOptionsMenuHidden;
     private boolean mViewIsAttached;
+    private boolean mViewWasDetached;
     private Router mRouter;
     private View mView;
     private Controller mParentController;
@@ -800,6 +801,7 @@ public abstract class Controller {
                 public void onViewAttachedToWindow(View v) {
                     if (v == mView) {
                         mViewIsAttached = true;
+                        mViewWasDetached = false;
                     }
                     attach(v);
                 }
@@ -807,6 +809,7 @@ public abstract class Controller {
                 @Override
                 public void onViewDetachedFromWindow(View v) {
                     mViewIsAttached = false;
+                    mViewWasDetached = true;
 
                     if (!mIsDetachFrozen) {
                         detach(v, false);
@@ -1002,7 +1005,7 @@ public abstract class Controller {
         if (mIsDetachFrozen != frozen) {
             mIsDetachFrozen = frozen;
 
-            if (!frozen && mView != null && !mViewIsAttached) {
+            if (!frozen && mView != null && mViewWasDetached) {
                 detach(mView, false);
             }
         }
