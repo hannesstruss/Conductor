@@ -186,6 +186,7 @@ public class HomeController extends BaseController {
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler())
                         .build());
+                break;
             case MASTER_DETAIL:
                 getRouter().pushController(RouterTransaction.builder(new MasterDetailListController())
                         .pushChangeHandler(new FadeChangeHandler())

@@ -978,8 +978,10 @@ public abstract class Controller {
     }
 
     final void changeStarted(ControllerChangeHandler changeHandler, ControllerChangeType changeType) {
-        for (ControllerHostedRouter router : mChildRouters) {
-            router.setDetachFrozen(true);
+        if (!changeType.isEnter) {
+            for (ControllerHostedRouter router : mChildRouters) {
+                router.setDetachFrozen(true);
+            }
         }
 
         onChangeStarted(changeHandler, changeType);
@@ -990,8 +992,10 @@ public abstract class Controller {
     }
 
     final void changeEnded(ControllerChangeHandler changeHandler, ControllerChangeType changeType) {
-        for (ControllerHostedRouter router : mChildRouters) {
-            router.setDetachFrozen(false);
+        if (!changeType.isEnter) {
+            for (ControllerHostedRouter router : mChildRouters) {
+                router.setDetachFrozen(false);
+            }
         }
 
         onChangeEnded(changeHandler, changeType);
