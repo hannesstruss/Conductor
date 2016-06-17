@@ -66,11 +66,9 @@ public class NavigationDemoController extends BaseController {
     }
 
     @OnClick(R.id.btn_next) void onNextClicked() {
-        getRouter().pushController(RouterTransaction.builder(new NavigationDemoController(mIndex + 1, mDisplayUp))
+        getRouter().pushController(RouterTransaction.with(new NavigationDemoController(mIndex + 1, mDisplayUp))
                 .pushChangeHandler(new HorizontalChangeHandler())
-                .popChangeHandler(new HorizontalChangeHandler())
-                .build()
-        );
+                .popChangeHandler(new HorizontalChangeHandler()));
     }
 
     @OnClick(R.id.btn_up) void onUpClicked() {

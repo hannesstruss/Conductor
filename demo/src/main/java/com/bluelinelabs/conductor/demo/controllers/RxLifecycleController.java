@@ -126,20 +126,16 @@ public class RxLifecycleController extends BaseController {
     @OnClick(R.id.btn_next_release_view) void onNextWithReleaseClicked() {
         setRetainViewMode(RetainViewMode.RELEASE_DETACH);
 
-        getRouter().pushController(RouterTransaction.builder(new TextController("Logcat should now report that the observables from onAttach() and onViewBound() have been unsubscribed from, while the constructor observable is still running."))
+        getRouter().pushController(RouterTransaction.with(new TextController("Logcat should now report that the observables from onAttach() and onViewBound() have been unsubscribed from, while the constructor observable is still running."))
                 .pushChangeHandler(new HorizontalChangeHandler())
-                .popChangeHandler(new HorizontalChangeHandler())
-                .build()
-        );
+                .popChangeHandler(new HorizontalChangeHandler()));
     }
 
     @OnClick(R.id.btn_next_retain_view) void onNextWithRetainClicked() {
         setRetainViewMode(RetainViewMode.RETAIN_DETACH);
 
-        getRouter().pushController(RouterTransaction.builder(new TextController("Logcat should now report that the observables from onAttach() has been unsubscribed from, while the constructor and onViewBound() observables are still running."))
+        getRouter().pushController(RouterTransaction.with(new TextController("Logcat should now report that the observables from onAttach() has been unsubscribed from, while the constructor and onViewBound() observables are still running."))
                 .pushChangeHandler(new HorizontalChangeHandler())
-                .popChangeHandler(new HorizontalChangeHandler())
-                .build()
-        );
+                .popChangeHandler(new HorizontalChangeHandler()));
     }
 }

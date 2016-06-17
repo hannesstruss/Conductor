@@ -19,8 +19,8 @@ public class ControllerChangeHandlerTests {
                 .build();
         RouterTransaction restoredTransaction = new RouterTransaction(transaction.saveInstanceState());
 
-        ControllerChangeHandler restoredHorizontal = restoredTransaction.getPushControllerChangeHandler();
-        ControllerChangeHandler restoredFade = restoredTransaction.getPopControllerChangeHandler();
+        ControllerChangeHandler restoredHorizontal = restoredTransaction.pushControllerChangeHandler();
+        ControllerChangeHandler restoredFade = restoredTransaction.popControllerChangeHandler();
 
         Assert.assertEquals(horizontalChangeHandler.getClass(), restoredHorizontal.getClass());
         Assert.assertEquals(fadeChangeHandler.getClass(), restoredFade.getClass());

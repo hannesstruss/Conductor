@@ -23,10 +23,10 @@ public class ControllerTransactionTests {
 
         RouterTransaction restoredTransaction = new RouterTransaction(bundle);
 
-        Assert.assertEquals(transaction.getController().getClass(), restoredTransaction.getController().getClass());
-        Assert.assertEquals(transaction.getPushControllerChangeHandler().getClass(), restoredTransaction.getPushControllerChangeHandler().getClass());
-        Assert.assertEquals(transaction.getPopControllerChangeHandler().getClass(), restoredTransaction.getPopControllerChangeHandler().getClass());
-        Assert.assertEquals(transaction.getTag(), restoredTransaction.getTag());
+        Assert.assertEquals(transaction.controller().getClass(), restoredTransaction.controller().getClass());
+        Assert.assertEquals(transaction.pushControllerChangeHandler().getClass(), restoredTransaction.pushControllerChangeHandler().getClass());
+        Assert.assertEquals(transaction.popControllerChangeHandler().getClass(), restoredTransaction.popControllerChangeHandler().getClass());
+        Assert.assertEquals(transaction.tag(), restoredTransaction.tag());
     }
 
 }

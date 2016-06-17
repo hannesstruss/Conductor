@@ -58,7 +58,7 @@ public class MainActivity extends Activity {
 
         mRouter = Conductor.attachRouter(this, container, savedInstanceState);
         if (!mRouter.hasRootController()) {
-            mRouter.setRoot(RouterTransaction.builder(new HomeController()).build());
+            mRouter.setRoot(RouterTransaction.with(new HomeController()));
         }
     }
 

@@ -23,8 +23,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler;
-import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.RouterTransaction;
+import com.bluelinelabs.conductor.RouterTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.changehandler.FadeChangeHandler;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
@@ -117,10 +117,9 @@ public class HomeController extends BaseController {
 
             getChildRouter(mOverlayRoot, null)
                     .setPopsLastView(true)
-                    .setRoot(RouterTransaction.builder(new OverlayController(content))
+                    .setRoot(RouterTransaction.with(new OverlayController(content))
                             .pushChangeHandler(new FadeChangeHandler())
-                            .popChangeHandler(new FadeChangeHandler())
-                            .build());
+                            .popChangeHandler(new FadeChangeHandler()));
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -134,64 +133,57 @@ public class HomeController extends BaseController {
     void onModelRowClick(HomeDemoModel model) {
         switch (model) {
             case NAVIGATION:
-                getRouter().pushController(RouterTransaction.builder(new NavigationDemoController(0, true))
+                getRouter().pushController(RouterTransaction.with(new NavigationDemoController(0, true))
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler())
                         .tag(NavigationDemoController.TAG_UP_TRANSACTION)
-                        .build());
+                );
                 break;
             case TRANSITIONS:
                 getRouter().pushController(TransitionDemoController.getRouterTransaction(0, this));
                 break;
             case TARGET_CONTROLLER:
-                getRouter().pushController(RouterTransaction.builder(new TargetDisplayController())
-                        .pushChangeHandler(new FadeChangeHandler())
-                        .popChangeHandler(new FadeChangeHandler())
-                        .build());
+                getRouter().pushController(
+                        RouterTransaction.with(new TargetDisplayController())
+                                .pushChangeHandler(new FadeChangeHandler())
+                                .popChangeHandler(new FadeChangeHandler()));
                 break;
             case VIEW_PAGER:
-                getRouter().pushController(RouterTransaction.builder(new PagerController())
+                getRouter().pushController(RouterTransaction.with(new PagerController())
                         .pushChangeHandler(new FadeChangeHandler())
-                        .popChangeHandler(new FadeChangeHandler())
-                        .build());
+                        .popChangeHandler(new FadeChangeHandler()));
                 break;
             case CHILD_CONTROLLERS:
-                getRouter().pushController(RouterTransaction.builder(new ParentController())
+                getRouter().pushController(RouterTransaction.with(new ParentController())
                         .pushChangeHandler(new FadeChangeHandler())
-                        .popChangeHandler(new FadeChangeHandler())
-                        .build());
+                        .popChangeHandler(new FadeChangeHandler()));
                 break;
             case OVERLAY:
                 getChildRouter(mOverlayRoot, null)
                         .setPopsLastView(true)
-                        .setRoot(RouterTransaction.builder(new OverlayController("I'm an overlay!"))
+                        .setRoot(RouterTransaction.with(new OverlayController("I'm an overlay!"))
                                 .pushChangeHandler(new FadeChangeHandler())
-                                .popChangeHandler(new FadeChangeHandler())
-                                .build());
+                                .popChangeHandler(new FadeChangeHandler()));
                 break;
             case DRAG_DISMISS:
-                getRouter().pushController(RouterTransaction.builder(new DragDismissController())
+                getRouter().pushController(RouterTransaction.with(new DragDismissController())
                         .pushChangeHandler(new FadeChangeHandler(false))
-                        .popChangeHandler(new FadeChangeHandler())
-                        .build());
+                        .popChangeHandler(new FadeChangeHandler()));
                 break;
             case RX_LIFECYCLE:
-                getRouter().pushController(RouterTransaction.builder(new RxLifecycleController())
+                getRouter().pushController(RouterTransaction.with(new RxLifecycleController())
                         .pushChangeHandler(new FadeChangeHandler())
-                        .popChangeHandler(new FadeChangeHandler())
-                        .build());
+                        .popChangeHandler(new FadeChangeHandler()));
                 break;
             case MULTIPLE_CHILD_ROUTERS:
-                getRouter().pushController(RouterTransaction.builder(new MultipleChildRouterController())
+                getRouter().pushController(RouterTransaction.with(new MultipleChildRouterController())
                         .pushChangeHandler(new FadeChangeHandler())
-                        .popChangeHandler(new FadeChangeHandler())
-                        .build());
+                        .popChangeHandler(new FadeChangeHandler()));
                 break;
             case MASTER_DETAIL:
-                getRouter().pushController(RouterTransaction.builder(new MasterDetailListController())
+                getRouter().pushController(RouterTransaction.with(new MasterDetailListController())
                         .pushChangeHandler(new FadeChangeHandler())
-                        .popChangeHandler(new FadeChangeHandler())
-                        .build());
+                        .popChangeHandler(new FadeChangeHandler()));
                 break;
         }
     }

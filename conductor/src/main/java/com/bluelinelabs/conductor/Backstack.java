@@ -52,7 +52,7 @@ class Backstack implements Iterable<RouterTransaction> {
 
     public RouterTransaction pop() {
         RouterTransaction popped = mBackStack.pop();
-        popped.getController().destroy();
+        popped.controller.destroy();
         return popped;
     }
 

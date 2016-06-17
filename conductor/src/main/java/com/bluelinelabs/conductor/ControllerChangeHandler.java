@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
+import com.bluelinelabs.conductor.RouterTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.changehandler.SimpleSwapChangeHandler;
 import com.bluelinelabs.conductor.internal.ClassUtils;
 

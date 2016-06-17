@@ -50,9 +50,8 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
         }
 
         if (!router.hasRootController()) {
-            router.setRoot(RouterTransaction.builder(getItem(position))
-                    .tag(name)
-                    .build());
+            router.setRoot(RouterTransaction.with(getItem(position))
+                    .tag(name));
         } else {
             router.rebindIfNeeded();
         }

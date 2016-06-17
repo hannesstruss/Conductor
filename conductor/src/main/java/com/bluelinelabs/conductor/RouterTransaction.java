@@ -4,41 +4,134 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 /**
- * A {@link ControllerTransaction} implementation used for adding {@link Controller}s to a {@link Router}.
+ * Metadata used for adding {@link Controller}s to a {@link Router}.
  */
-public class RouterTransaction extends ControllerTransaction {
+public class RouterTransaction {
 
-    private RouterTransaction(Builder builder) {
-        super(builder);
+    /**
+     * All possible types of {@link Controller} changes to be used in {@link ControllerChangeHandler}s
+     */
+    public enum ControllerChangeType {
+        /** The Controller is being pushed to the host container */
+        PUSH_ENTER(true, true),
+
+        /** The Controller is being pushed to the backstack as another Controller is pushed to the host container */
+        PUSH_EXIT(true, false),
+
+        /** The Controller is being popped from the backstack and placed in the host container as another Controller is popped */
+        POP_ENTER(false, true),
+
+        /** The Controller is being popped from the host container */
+        POP_EXIT(false, false);
+
+        public boolean isPush;
+        public boolean isEnter;
+
+        ControllerChangeType(boolean isPush, boolean isEnter) {
+            this.isPush = isPush;
+            this.isEnter = isEnter;
+        }
+    }
+
+    private static final String KEY_VIEW_CONTROLLER_BUNDLE = "RouterTransaction.controller.bundle";
+    private static final String KEY_PUSH_TRANSITION = "RouterTransaction.pushControllerChangeHandler";
+    private static final String KEY_POP_TRANSITION = "RouterTransaction.popControllerChangeHandler";
+    private static final String KEY_TAG = "RouterTransaction.tag";
+    private static final String KEY_ATTACHED_TO_ROUTER = "RouterTransaction.attachedToRouter";
+
+    @NonNull final Controller controller;
+    private String tag;
+
+    private ControllerChangeHandler mPushControllerChangeHandler;
+    private ControllerChangeHandler mPopControllerChangeHandler;
+    private boolean mAttachedToRouter;
+
+    public static RouterTransaction with(@NonNull Controller controller) {
+        return new RouterTransaction(controller);
+    }
+
+    private RouterTransaction(@NonNull Controller controller) {
+        this.controller = controller;
     }
 
     RouterTransaction(@NonNull Bundle bundle) {
-        super(bundle);
+        controller = Controller.newInstance(bundle.getBundle(KEY_VIEW_CONTROLLER_BUNDLE));
+        mPushControllerChangeHandler = ControllerChangeHandler.fromBundle(bundle.getBundle(KEY_PUSH_TRANSITION));
+        mPopControllerChangeHandler = ControllerChangeHandler.fromBundle(bundle.getBundle(KEY_POP_TRANSITION));
+        tag = bundle.getString(KEY_TAG);
+        mAttachedToRouter = bundle.getBoolean(KEY_ATTACHED_TO_ROUTER);
+    }
+
+    void onAttachedToRouter() {
+        mAttachedToRouter = true;
+    }
+
+    String tag() {
+        return tag;
+    }
+
+    public RouterTransaction tag(String tag) {
+        if (!mAttachedToRouter) {
+            this.tag = tag;
+            return this;
+        } else {
+            throw new RuntimeException(getClass().getSimpleName() + "s can not be modified after being added to a Router.");
+        }
+    }
+
+    ControllerChangeHandler pushChangeHandler() {
+        ControllerChangeHandler handler = controller.getOverriddenPushHandler();
+        if (handler == null) {
+            handler = mPushControllerChangeHandler;
+        }
+        return handler;
+    }
+
+    public RouterTransaction pushChangeHandler(ControllerChangeHandler handler) {
+        if (!mAttachedToRouter) {
+            mPushControllerChangeHandler = handler;
+            return this;
+        } else {
+            throw new RuntimeException(getClass().getSimpleName() + "s can not be modified after being added to a Router.");
+        }
+    }
+
+    ControllerChangeHandler popChangeHandler() {
+        ControllerChangeHandler handler = controller.getOverriddenPopHandler();
+        if (handler == null) {
+            handler = mPopControllerChangeHandler;
+        }
+        return handler;
+    }
+
+    public RouterTransaction popChangeHandler(ControllerChangeHandler handler) {
+        if (!mAttachedToRouter) {
+            mPopControllerChangeHandler = handler;
+            return this;
+        } else {
+            throw new RuntimeException(getClass().getSimpleName() + "s can not be modified after being added to a Router.");
+        }
     }
 
     /**
-     * Creates a new Builder
-     *
-     * @param controller The {@link Controller} to add to the {@link Router}
+     * Used to serialize this transaction into a Bundle
      */
-    public static Builder builder(@NonNull Controller controller) {
-        return new Builder(controller);
-    }
+    public Bundle saveInstanceState() {
+        Bundle bundle = new Bundle();
 
-    /**
-     * A {@link ControllerTransaction.Builder} implementation used for adding {@link Controller}s to a {@link Router}.
-     */
-    public static class Builder extends ControllerTransaction.Builder<Builder> {
+        bundle.putBundle(KEY_VIEW_CONTROLLER_BUNDLE, controller.saveInstanceState());
 
-        Builder(@NonNull Controller controller) {
-            super(controller);
+        if (mPushControllerChangeHandler != null) {
+            bundle.putBundle(KEY_PUSH_TRANSITION, mPushControllerChangeHandler.toBundle());
+        }
+        if (mPopControllerChangeHandler != null) {
+            bundle.putBundle(KEY_POP_TRANSITION, mPopControllerChangeHandler.toBundle());
         }
 
-        /** Creates the transaction */
-        public RouterTransaction build() {
-            return new RouterTransaction(this);
-        }
+        bundle.putString(KEY_TAG, tag);
+        bundle.putBoolean(KEY_ATTACHED_TO_ROUTER, mAttachedToRouter);
 
+        return bundle;
     }
 
 }

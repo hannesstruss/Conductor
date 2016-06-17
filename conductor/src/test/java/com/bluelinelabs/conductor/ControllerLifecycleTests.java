@@ -9,7 +9,7 @@ import android.widget.FrameLayout;
 
 import com.bluelinelabs.conductor.Controller.LifecycleListener;
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeCompletedListener;
-import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
+import com.bluelinelabs.conductor.RouterTransaction.ControllerChangeType;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,7 +38,7 @@ public class ControllerLifecycleTests {
 
         mRouter = Conductor.attachRouter(mActivityController.get(), routerContainer, savedInstanceState);
         if (!mRouter.hasRootController()) {
-            mRouter.setRoot(RouterTransaction.builder(new TestController()).build());
+            mRouter.setRoot(RouterTransaction.with(new TestController()));
         }
     }
 
@@ -57,10 +57,9 @@ public class ControllerLifecycleTests {
         CallState expectedCallState = new CallState();
 
         assertCalls(expectedCallState, controller);
-        mRouter.pushController(RouterTransaction.builder(controller)
+        mRouter.pushController(RouterTransaction.with(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller))
-                .popChangeHandler(getPopHandler(expectedCallState, controller))
-                .build());
+                .popChangeHandler(getPopHandler(expectedCallState, controller)));
 
         assertCalls(expectedCallState, controller);
 
@@ -79,9 +78,8 @@ public class ControllerLifecycleTests {
         CallState expectedCallState = new CallState();
 
         assertCalls(expectedCallState, controller);
-        mRouter.pushController(RouterTransaction.builder(controller)
-                .pushChangeHandler(getPushHandler(expectedCallState, controller))
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller)
+                .pushChangeHandler(getPushHandler(expectedCallState, controller)));
 
         assertCalls(expectedCallState, controller);
 
@@ -109,10 +107,9 @@ public class ControllerLifecycleTests {
         CallState expectedCallState = new CallState();
 
         assertCalls(expectedCallState, controller);
-        mRouter.pushController(RouterTransaction.builder(controller)
+        mRouter.pushController(RouterTransaction.with(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller))
-                .tag("root")
-                .build());
+                .tag("root"));
 
         assertCalls(expectedCallState, controller);
 
@@ -166,9 +163,8 @@ public class ControllerLifecycleTests {
         CallState expectedCallState = new CallState();
 
         assertCalls(expectedCallState, controller);
-        mRouter.pushController(RouterTransaction.builder(controller)
-                .pushChangeHandler(getPushHandler(expectedCallState, controller))
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller)
+                .pushChangeHandler(getPushHandler(expectedCallState, controller)));
 
         assertCalls(expectedCallState, controller);
 
@@ -381,7 +377,7 @@ public class ControllerLifecycleTests {
             }
         });
 
-        mRouter.pushController(RouterTransaction.builder(testController)
+        mRouter.pushController(RouterTransaction.with(testController)
                 .pushChangeHandler(new ChangeHandler(new ChangeHandlerListener() {
                     @Override
                     public void performChange(@NonNull ViewGroup container, View from, View to, boolean isPush, @NonNull ControllerChangeCompletedListener changeListener) {
@@ -397,8 +393,7 @@ public class ControllerLifecycleTests {
                         ViewUtils.setAttached(from, false);
                         changeListener.onChangeCompleted();
                     }
-                }))
-                .build());
+                })));
 
         mRouter.popController(testController);
 
@@ -412,7 +407,7 @@ public class ControllerLifecycleTests {
     @Test
     public void testChildLifecycle() {
         Controller parent = new TestController();
-        mRouter.pushController(RouterTransaction.builder(parent)
+        mRouter.pushController(RouterTransaction.with(parent)
                 .pushChangeHandler(new ChangeHandler(new ChangeHandlerListener() {
                     @Override
                     public void performChange(@NonNull ViewGroup container, View from, View to, boolean isPush, @NonNull ControllerChangeCompletedListener changeListener) {
@@ -420,8 +415,7 @@ public class ControllerLifecycleTests {
                         ViewUtils.setAttached(to, true);
                         changeListener.onChangeCompleted();
                     }
-                }))
-                .build());
+                })));
 
         TestController child = new TestController();
         attachLifecycleListener(child);
@@ -432,10 +426,9 @@ public class ControllerLifecycleTests {
 
         Router childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null);
             childRouter
-                .setRoot(RouterTransaction.builder(child)
+                .setRoot(RouterTransaction.with(child)
                         .pushChangeHandler(getPushHandler(expectedCallState, child))
-                        .popChangeHandler(getPopHandler(expectedCallState, child))
-                        .build());
+                        .popChangeHandler(getPopHandler(expectedCallState, child)));
 
         assertCalls(expectedCallState, child);
 
@@ -447,7 +440,7 @@ public class ControllerLifecycleTests {
     @Test
     public void testChildLifecycle2() {
         Controller parent = new TestController();
-        mRouter.pushController(RouterTransaction.builder(parent)
+        mRouter.pushController(RouterTransaction.with(parent)
                 .pushChangeHandler(new ChangeHandler(new ChangeHandlerListener() {
                     @Override
                     public void performChange(@NonNull ViewGroup container, View from, View to, boolean isPush, @NonNull ControllerChangeCompletedListener changeListener) {
@@ -463,8 +456,7 @@ public class ControllerLifecycleTests {
                         ViewUtils.setAttached(from, false);
                         changeListener.onChangeCompleted();
                     }
-                }))
-                .build());
+                })));
 
         TestController child = new TestController();
         attachLifecycleListener(child);
@@ -475,10 +467,9 @@ public class ControllerLifecycleTests {
 
         Router childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null);
         childRouter
-                .setRoot(RouterTransaction.builder(child)
+                .setRoot(RouterTransaction.with(child)
                         .pushChangeHandler(getPushHandler(expectedCallState, child))
-                        .popChangeHandler(getPopHandler(expectedCallState, child))
-                        .build());
+                        .popChangeHandler(getPopHandler(expectedCallState, child)));
 
         assertCalls(expectedCallState, child);
 

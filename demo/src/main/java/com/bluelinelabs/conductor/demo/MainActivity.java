@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements ActionBarProvider
 
         mRouter = Conductor.attachRouter(this, mContainer, savedInstanceState);
         if (!mRouter.hasRootController()) {
-            mRouter.setRoot(RouterTransaction.builder(new HomeController()).build());
+            mRouter.setRoot(RouterTransaction.with(new HomeController()));
         }
     }
 

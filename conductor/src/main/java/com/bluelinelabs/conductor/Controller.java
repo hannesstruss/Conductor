@@ -21,7 +21,7 @@ import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
-import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
+import com.bluelinelabs.conductor.RouterTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.internal.ClassUtils;
 import com.bluelinelabs.conductor.internal.RouterRequiringFunc;
 
@@ -539,7 +539,7 @@ public abstract class Controller {
 
     /**
      * Returns the {@link ControllerChangeHandler} that should be used for pushing this Controller, or null
-     * if the handler from the {@link ControllerTransaction} should be used instead.
+     * if the handler from the {@link RouterTransaction} should be used instead.
      */
     public final ControllerChangeHandler getOverriddenPushHandler() {
         return mOverriddenPushHandler;
@@ -547,7 +547,7 @@ public abstract class Controller {
 
     /**
      * Overrides the {@link ControllerChangeHandler} that should be used for pushing this Controller. If this is a
-     * non-null value, it will be used instead of the handler from  the {@link ControllerTransaction}.
+     * non-null value, it will be used instead of the handler from  the {@link RouterTransaction}.
      */
     public void overridePushHandler(ControllerChangeHandler overriddenPushHandler) {
         mOverriddenPushHandler = overriddenPushHandler;
@@ -555,7 +555,7 @@ public abstract class Controller {
 
     /**
      * Returns the {@link ControllerChangeHandler} that should be used for popping this Controller, or null
-     * if the handler from the {@link ControllerTransaction} should be used instead.
+     * if the handler from the {@link RouterTransaction} should be used instead.
      */
     public ControllerChangeHandler getOverriddenPopHandler() {
         return mOverriddenPopHandler;
@@ -563,7 +563,7 @@ public abstract class Controller {
 
     /**
      * Overrides the {@link ControllerChangeHandler} that should be used for popping this Controller. If this is a
-     * non-null value, it will be used instead of the handler from  the {@link ControllerTransaction}.
+     * non-null value, it will be used instead of the handler from  the {@link RouterTransaction}.
      */
     public void overridePopHandler(ControllerChangeHandler overriddenPopHandler) {
         mOverriddenPopHandler = overriddenPopHandler;

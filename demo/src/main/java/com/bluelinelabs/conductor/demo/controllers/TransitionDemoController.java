@@ -142,10 +142,9 @@ public class TransitionDemoController extends BaseController {
         TransitionDemoController toController = new TransitionDemoController(index);
         ControllerChangeHandler changeHandler = toController.getChangeHandler(fromController);
 
-        return RouterTransaction.builder(toController)
+        return RouterTransaction.with(toController)
                 .pushChangeHandler(changeHandler)
-                .popChangeHandler(changeHandler)
-                .build();
+                .popChangeHandler(changeHandler);
     }
 
 }

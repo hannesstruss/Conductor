@@ -101,7 +101,7 @@ public abstract class Router {
      */
     public boolean popController(Controller controller) {
         RouterTransaction topController = mBackStack.peek();
-        boolean poppingTopController = topController.controller == controller;
+        boolean poppingTopController = topController != null && topController.controller == controller;
 
         if (poppingTopController) {
             trackDestroyingController(mBackStack.pop());
@@ -160,7 +160,7 @@ public abstract class Router {
         if (poppedControllers.size() > 0) {
             trackDestroyingControllers(poppedControllers);
 
-            performControllerChange(null, poppedControllers.get(0).controller, false, poppedControllers.get(0).getPopControllerChangeHandler());
+            performControllerChange(null, poppedControllers.get(0).controller, false, poppedControllers.get(0).popChangeHandler());
         }
     }
 
@@ -213,7 +213,7 @@ public abstract class Router {
      */
     public boolean popToTag(@NonNull String tag, ControllerChangeHandler changeHandler) {
         for (RouterTransaction transaction : mBackStack) {
-            if (tag.equals(transaction.tag)) {
+            if (tag.equals(transaction.tag())) {
                 popToTransaction(transaction, changeHandler);
                 return true;
             }
@@ -244,7 +244,7 @@ public abstract class Router {
      * @return The matching Controller, if one exists
      */
     public Controller getControllerWithInstanceId(String instanceId) {
-        for (ControllerTransaction transaction : mBackStack) {
+        for (RouterTransaction transaction : mBackStack) {
             Controller controllerWithId = transaction.controller.findController(instanceId);
             if (controllerWithId != null) {
                 return controllerWithId;
@@ -260,8 +260,8 @@ public abstract class Router {
      * @return The matching Controller, if one exists
      */
     public Controller getControllerWithTag(String tag) {
-        for (ControllerTransaction transaction : mBackStack) {
-            if (tag.equals(transaction.tag)) {
+        for (RouterTransaction transaction : mBackStack) {
+            if (tag.equals(transaction.tag())) {
                 return transaction.controller;
             }
         }
@@ -306,6 +306,10 @@ public abstract class Router {
                 ControllerChangeHandler handler = changeHandler != null ? changeHandler : new SimpleSwapChangeHandler();
                 performControllerChange(newTop, oldTop, true, handler);
             }
+        }
+
+        for (RouterTransaction transaction : backstack) {
+            transaction.onAttachedToRouter();
         }
 
         mBackStack.setBackstack(backstack);
@@ -492,7 +496,7 @@ public abstract class Router {
 
         if (poppedTransactions.size() > 0) {
             if (changeHandler == null) {
-                changeHandler = topTransaction.getPopControllerChangeHandler();
+                changeHandler = topTransaction.popChangeHandler();
             }
 
             performControllerChange(mBackStack.peek().controller, topTransaction.controller, false, changeHandler);
@@ -517,7 +521,7 @@ public abstract class Router {
     }
 
     public final Boolean handleRequestedPermission(@NonNull String permission) {
-        for (ControllerTransaction transaction : mBackStack) {
+        for (RouterTransaction transaction : mBackStack) {
             if (transaction.controller.didRequestPermission(permission)) {
                 return transaction.controller.shouldShowRequestPermissionRationale(permission);
             }
@@ -526,12 +530,16 @@ public abstract class Router {
     }
 
     private void performControllerChange(RouterTransaction to, RouterTransaction from, boolean isPush) {
+        if (isPush && to != null) {
+            to.onAttachedToRouter();
+        }
+
         ControllerChangeHandler changeHandler;
         if (isPush) {
             //noinspection ConstantConditions
-            changeHandler = to.getPushControllerChangeHandler();
+            changeHandler = to.pushChangeHandler();
         } else if (from != null) {
-            changeHandler = from.getPopControllerChangeHandler();
+            changeHandler = from.popChangeHandler();
         } else {
             changeHandler = new SimpleSwapChangeHandler();
         }

@@ -28,7 +28,7 @@ public class MultipleChildRouterController extends BaseController {
         for (ViewGroup childContainer : mChildContainers) {
             Router childRouter = getChildRouter(childContainer, null).setPopsLastView(false);
             if (!childRouter.hasRootController()) {
-                childRouter.setRoot(RouterTransaction.builder(new NavigationDemoController(0, false)).build());
+                childRouter.setRoot(RouterTransaction.with(new NavigationDemoController(0, false)));
             }
         }
     }

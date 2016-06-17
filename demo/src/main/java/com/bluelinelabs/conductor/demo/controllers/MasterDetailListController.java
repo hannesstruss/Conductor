@@ -91,12 +91,11 @@ public class MasterDetailListController extends BaseController {
         ChildController controller = new ChildController(model.detail, model.backgroundColor, true);
 
         if (mTwoPaneView) {
-            getChildRouter(mDetailContainer, null).setRoot(RouterTransaction.builder(controller).build());
+            getChildRouter(mDetailContainer, null).setRoot(RouterTransaction.with(controller));
         } else {
-            getRouter().pushController(RouterTransaction.builder(controller)
+            getRouter().pushController(RouterTransaction.with(controller)
                     .pushChangeHandler(new HorizontalChangeHandler())
-                    .popChangeHandler(new HorizontalChangeHandler())
-                    .build());
+                    .popChangeHandler(new HorizontalChangeHandler()));
         }
     }
 

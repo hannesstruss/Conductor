@@ -8,9 +8,9 @@ import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
-import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
+import com.bluelinelabs.conductor.RouterTransaction.ControllerChangeType;
 import com.bluelinelabs.conductor.changehandler.FadeChangeHandler;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
@@ -59,10 +59,9 @@ public class ParentController extends BaseController {
                 }
             });
 
-            childRouter.setRoot(RouterTransaction.builder(childController)
+            childRouter.setRoot(RouterTransaction.with(childController)
                     .pushChangeHandler(new FadeChangeHandler())
-                    .popChangeHandler(new FadeChangeHandler())
-                    .build());
+                    .popChangeHandler(new FadeChangeHandler()));
         }
     }
 

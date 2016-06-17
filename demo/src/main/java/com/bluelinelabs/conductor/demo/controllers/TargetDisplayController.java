@@ -42,10 +42,9 @@ public class TargetDisplayController extends BaseController implements TargetTit
     }
 
     @OnClick(R.id.btn_pick_title) void launchTitlePicker() {
-        getRouter().pushController(RouterTransaction.builder(new TargetTitleEntryController(this))
+        getRouter().pushController(RouterTransaction.with(new TargetTitleEntryController(this))
                 .pushChangeHandler(new HorizontalChangeHandler())
-                .popChangeHandler(new HorizontalChangeHandler())
-                .build());
+                .popChangeHandler(new HorizontalChangeHandler()));
     }
 
     @OnClick(R.id.btn_pick_image) void launchImagePicker() {
