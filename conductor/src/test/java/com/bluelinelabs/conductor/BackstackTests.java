@@ -16,14 +16,14 @@ public class BackstackTests {
     @Test
     public void testPush() {
         Assert.assertEquals(0, mBackstack.size());
-        mBackstack.push(RouterTransaction.builder(new TestController()).build());
+        mBackstack.push(RouterTransaction.with(new TestController()));
         Assert.assertEquals(1, mBackstack.size());
     }
 
     @Test
     public void testPop() {
-        mBackstack.push(RouterTransaction.builder(new TestController()).build());
-        mBackstack.push(RouterTransaction.builder(new TestController()).build());
+        mBackstack.push(RouterTransaction.with(new TestController()));
+        mBackstack.push(RouterTransaction.with(new TestController()));
         Assert.assertEquals(2, mBackstack.size());
         mBackstack.pop();
         Assert.assertEquals(1, mBackstack.size());
@@ -33,8 +33,8 @@ public class BackstackTests {
 
     @Test
     public void testPeek() {
-        RouterTransaction transaction1 = RouterTransaction.builder(new TestController()).build();
-        RouterTransaction transaction2 = RouterTransaction.builder(new TestController()).build();
+        RouterTransaction transaction1 = RouterTransaction.with(new TestController());
+        RouterTransaction transaction2 = RouterTransaction.with(new TestController());
 
         mBackstack.push(transaction1);
         Assert.assertEquals(transaction1, mBackstack.peek());
@@ -48,9 +48,9 @@ public class BackstackTests {
 
     @Test
     public void testPopTo() {
-        RouterTransaction transaction1 = RouterTransaction.builder(new TestController()).build();
-        RouterTransaction transaction2 = RouterTransaction.builder(new TestController()).build();
-        RouterTransaction transaction3 = RouterTransaction.builder(new TestController()).build();
+        RouterTransaction transaction1 = RouterTransaction.with(new TestController());
+        RouterTransaction transaction2 = RouterTransaction.with(new TestController());
+        RouterTransaction transaction3 = RouterTransaction.with(new TestController());
 
         mBackstack.push(transaction1);
         mBackstack.push(transaction2);

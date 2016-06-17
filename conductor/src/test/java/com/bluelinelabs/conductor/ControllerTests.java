@@ -35,7 +35,7 @@ public class ControllerTests {
 
         mRouter = Conductor.attachRouter(mActivityController.get(), routerContainer, savedInstanceState);
         if (!mRouter.hasRootController()) {
-            mRouter.setRoot(RouterTransaction.builder(new TestController()).build());
+            mRouter.setRoot(RouterTransaction.with(new TestController()));
         }
     }
 
@@ -77,7 +77,7 @@ public class ControllerTests {
         TestController controller = new TestController();
         CallState expectedCallState = new CallState(true);
 
-        mRouter.pushController(RouterTransaction.builder(controller).build());
+        mRouter.pushController(RouterTransaction.with(controller));
         ViewUtils.setAttached(controller.getView(), true);
 
         // Ensure that calling onActivityResult w/o requesting a result doesn't do anything
@@ -102,10 +102,10 @@ public class ControllerTests {
         TestController parent = new TestController();
         TestController child = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(parent).build());
+        mRouter.pushController(RouterTransaction.with(parent));
         ViewUtils.setAttached(parent.getView(), true);
         parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null)
-                .setRoot(RouterTransaction.builder(child).build());
+                .setRoot(RouterTransaction.with(child));
         ViewUtils.setAttached(child.getView(), true);
 
         CallState childExpectedCallState = new CallState(true);
@@ -138,7 +138,7 @@ public class ControllerTests {
         TestController controller = new TestController();
         CallState expectedCallState = new CallState(true);
 
-        mRouter.pushController(RouterTransaction.builder(controller).build());
+        mRouter.pushController(RouterTransaction.with(controller));
         ViewUtils.setAttached(controller.getView(), true);
 
         // Ensure that calling handleRequestedPermission w/o requesting a result doesn't do anything
@@ -162,10 +162,10 @@ public class ControllerTests {
         TestController parent = new TestController();
         TestController child = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(parent).build());
+        mRouter.pushController(RouterTransaction.with(parent));
         ViewUtils.setAttached(parent.getView(), true);
         parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null)
-                .setRoot(RouterTransaction.builder(child).build());
+                .setRoot(RouterTransaction.with(child));
         ViewUtils.setAttached(child.getView(), true);
 
         CallState childExpectedCallState = new CallState(true);
@@ -192,7 +192,7 @@ public class ControllerTests {
         TestController controller = new TestController();
         CallState expectedCallState = new CallState(true);
 
-        mRouter.pushController(RouterTransaction.builder(controller).build());
+        mRouter.pushController(RouterTransaction.with(controller));
         ViewUtils.setAttached(controller.getView(), true);
 
         // Ensure that calling onCreateOptionsMenu w/o declaring that we have one doesn't do anything
@@ -229,10 +229,10 @@ public class ControllerTests {
         TestController parent = new TestController();
         TestController child = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(parent).build());
+        mRouter.pushController(RouterTransaction.with(parent));
         ViewUtils.setAttached(parent.getView(), true);
         parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null)
-                .setRoot(RouterTransaction.builder(child).build());
+                .setRoot(RouterTransaction.with(child));
         ViewUtils.setAttached(child.getView(), true);
 
         CallState childExpectedCallState = new CallState(true);
@@ -278,14 +278,14 @@ public class ControllerTests {
         TestController child1 = new TestController();
         TestController child2 = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(parent).build());
+        mRouter.pushController(RouterTransaction.with(parent));
 
         Assert.assertEquals(0, parent.getChildRouters().size());
         Assert.assertNull(child1.getParentController());
         Assert.assertNull(child2.getParentController());
 
         Router childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null);
-        childRouter.setRoot(RouterTransaction.builder(child1).build());
+        childRouter.setRoot(RouterTransaction.with(child1));
 
         Assert.assertEquals(1, parent.getChildRouters().size());
         Assert.assertEquals(childRouter, parent.getChildRouters().get(0));
@@ -295,7 +295,7 @@ public class ControllerTests {
         Assert.assertNull(child2.getParentController());
 
         childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID), null);
-        childRouter.pushController(RouterTransaction.builder(child2).build());
+        childRouter.pushController(RouterTransaction.with(child2));
 
         Assert.assertEquals(1, parent.getChildRouters().size());
         Assert.assertEquals(childRouter, parent.getChildRouters().get(0));
@@ -330,7 +330,7 @@ public class ControllerTests {
         TestController child1 = new TestController();
         TestController child2 = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(parent).build());
+        mRouter.pushController(RouterTransaction.with(parent));
 
         Assert.assertEquals(0, parent.getChildRouters().size());
         Assert.assertNull(child1.getParentController());
@@ -339,8 +339,8 @@ public class ControllerTests {
         Router childRouter1 = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.CHILD_VIEW_ID_1), null);
         Router childRouter2 = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.CHILD_VIEW_ID_2), null);
 
-        childRouter1.setRoot(RouterTransaction.builder(child1).build());
-        childRouter2.setRoot(RouterTransaction.builder(child2).build());
+        childRouter1.setRoot(RouterTransaction.with(child1));
+        childRouter2.setRoot(RouterTransaction.with(child2));
 
         Assert.assertEquals(2, parent.getChildRouters().size());
         Assert.assertEquals(childRouter1, parent.getChildRouters().get(0));

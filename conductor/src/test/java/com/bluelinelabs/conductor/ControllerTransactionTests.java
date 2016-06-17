@@ -13,19 +13,18 @@ public class ControllerTransactionTests {
 
     @Test
     public void testRouterSaveRestore() {
-        RouterTransaction transaction = RouterTransaction.builder(new TestController())
+        RouterTransaction transaction = RouterTransaction.with(new TestController())
                 .pushChangeHandler(new HorizontalChangeHandler())
                 .popChangeHandler(new VerticalChangeHandler())
-                .tag("Test Tag")
-                .build();
+                .tag("Test Tag");
 
         Bundle bundle = transaction.saveInstanceState();
 
         RouterTransaction restoredTransaction = new RouterTransaction(bundle);
 
-        Assert.assertEquals(transaction.controller().getClass(), restoredTransaction.controller().getClass());
-        Assert.assertEquals(transaction.pushControllerChangeHandler().getClass(), restoredTransaction.pushControllerChangeHandler().getClass());
-        Assert.assertEquals(transaction.popControllerChangeHandler().getClass(), restoredTransaction.popControllerChangeHandler().getClass());
+        Assert.assertEquals(transaction.controller.getClass(), restoredTransaction.controller.getClass());
+        Assert.assertEquals(transaction.pushChangeHandler().getClass(), restoredTransaction.pushChangeHandler().getClass());
+        Assert.assertEquals(transaction.popChangeHandler().getClass(), restoredTransaction.popChangeHandler().getClass());
         Assert.assertEquals(transaction.tag(), restoredTransaction.tag());
     }
 

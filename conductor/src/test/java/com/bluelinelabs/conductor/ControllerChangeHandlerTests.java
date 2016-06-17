@@ -13,14 +13,13 @@ public class ControllerChangeHandlerTests {
         HorizontalChangeHandler horizontalChangeHandler = new HorizontalChangeHandler();
         FadeChangeHandler fadeChangeHandler = new FadeChangeHandler(120, false);
 
-        RouterTransaction transaction = RouterTransaction.builder(new TestController())
+        RouterTransaction transaction = RouterTransaction.with(new TestController())
                 .pushChangeHandler(horizontalChangeHandler)
-                .popChangeHandler(fadeChangeHandler)
-                .build();
+                .popChangeHandler(fadeChangeHandler);
         RouterTransaction restoredTransaction = new RouterTransaction(transaction.saveInstanceState());
 
-        ControllerChangeHandler restoredHorizontal = restoredTransaction.pushControllerChangeHandler();
-        ControllerChangeHandler restoredFade = restoredTransaction.popControllerChangeHandler();
+        ControllerChangeHandler restoredHorizontal = restoredTransaction.pushChangeHandler();
+        ControllerChangeHandler restoredFade = restoredTransaction.popChangeHandler();
 
         Assert.assertEquals(horizontalChangeHandler.getClass(), restoredHorizontal.getClass());
         Assert.assertEquals(fadeChangeHandler.getClass(), restoredFade.getClass());

@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import com.bluelinelabs.conductor.ControllerTransaction.ControllerChangeType;
+import com.bluelinelabs.conductor.RouterTransaction.ControllerChangeType;
 
 public class TestController extends Controller {
 

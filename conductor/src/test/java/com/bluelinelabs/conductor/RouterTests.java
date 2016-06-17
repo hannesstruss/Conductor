@@ -31,7 +31,7 @@ public class RouterTests {
 
         Assert.assertFalse(mRouter.hasRootController());
 
-        mRouter.setRoot(RouterTransaction.builder(rootController).tag(rootTag).build());
+        mRouter.setRoot(RouterTransaction.with(rootController).tag(rootTag));
 
         Assert.assertTrue(mRouter.hasRootController());
 
@@ -46,8 +46,8 @@ public class RouterTests {
         Controller oldRootController = new TestController();
         Controller newRootController = new TestController();
 
-        mRouter.setRoot(RouterTransaction.builder(oldRootController).tag(oldRootTag).build());
-        mRouter.setRoot(RouterTransaction.builder(newRootController).tag(newRootTag).build());
+        mRouter.setRoot(RouterTransaction.with(oldRootController).tag(oldRootTag));
+        mRouter.setRoot(RouterTransaction.with(newRootController).tag(newRootTag));
 
         Assert.assertNull(mRouter.getControllerWithTag(oldRootTag));
         Assert.assertEquals(newRootController, mRouter.getControllerWithTag(newRootTag));
@@ -57,7 +57,7 @@ public class RouterTests {
     public void testGetByInstanceId() {
         Controller controller = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(controller).build());
+        mRouter.pushController(RouterTransaction.with(controller));
 
         Assert.assertEquals(controller, mRouter.getControllerWithInstanceId(controller.getInstanceId()));
         Assert.assertNull(mRouter.getControllerWithInstanceId("fake id"));
@@ -71,13 +71,11 @@ public class RouterTests {
         Controller controller1 = new TestController();
         Controller controller2 = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(controller1)
-                .tag(controller1Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller1)
+                .tag(controller1Tag));
 
-        mRouter.pushController(RouterTransaction.builder(controller2)
-                .tag(controller2Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller2)
+                .tag(controller2Tag));
 
         Assert.assertEquals(controller1, mRouter.getControllerWithTag(controller1Tag));
         Assert.assertEquals(controller2, mRouter.getControllerWithTag(controller2Tag));
@@ -91,15 +89,13 @@ public class RouterTests {
         Controller controller1 = new TestController();
         Controller controller2 = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(controller1)
-                .tag(controller1Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller1)
+                .tag(controller1Tag));
 
         Assert.assertEquals(1, mRouter.getBackstackSize());
 
-        mRouter.pushController(RouterTransaction.builder(controller2)
-                .tag(controller2Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller2)
+                .tag(controller2Tag));
 
         Assert.assertEquals(2, mRouter.getBackstackSize());
 
@@ -130,21 +126,17 @@ public class RouterTests {
         Controller controller3 = new TestController();
         Controller controller4 = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(controller1)
-                .tag(controller1Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller1)
+                .tag(controller1Tag));
 
-        mRouter.pushController(RouterTransaction.builder(controller2)
-                .tag(controller2Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller2)
+                .tag(controller2Tag));
 
-        mRouter.pushController(RouterTransaction.builder(controller3)
-                .tag(controller3Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller3)
+                .tag(controller3Tag));
 
-        mRouter.pushController(RouterTransaction.builder(controller4)
-                .tag(controller4Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller4)
+                .tag(controller4Tag));
 
         mRouter.popToTag(controller2Tag);
 
@@ -165,17 +157,14 @@ public class RouterTests {
         Controller controller2 = new TestController();
         Controller controller3 = new TestController();
 
-        mRouter.pushController(RouterTransaction.builder(controller1)
-                .tag(controller1Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller1)
+                .tag(controller1Tag));
 
-        mRouter.pushController(RouterTransaction.builder(controller2)
-                .tag(controller2Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller2)
+                .tag(controller2Tag));
 
-        mRouter.pushController(RouterTransaction.builder(controller3)
-                .tag(controller3Tag)
-                .build());
+        mRouter.pushController(RouterTransaction.with(controller3)
+                .tag(controller3Tag));
 
         mRouter.popController(controller2);
 
