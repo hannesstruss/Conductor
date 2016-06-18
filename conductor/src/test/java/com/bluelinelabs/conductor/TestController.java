@@ -11,8 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import com.bluelinelabs.conductor.RouterTransaction.ControllerChangeType;
-
 public class TestController extends Controller {
 
     @IdRes public static final int VIEW_ID = 2342;

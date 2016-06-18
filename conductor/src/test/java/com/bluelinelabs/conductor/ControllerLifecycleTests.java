@@ -9,7 +9,6 @@ import android.widget.FrameLayout;
 
 import com.bluelinelabs.conductor.Controller.LifecycleListener;
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeCompletedListener;
-import com.bluelinelabs.conductor.RouterTransaction.ControllerChangeType;
 
 import org.junit.Assert;
 import org.junit.Before;
