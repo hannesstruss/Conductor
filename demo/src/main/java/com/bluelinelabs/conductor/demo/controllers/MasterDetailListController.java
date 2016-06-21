@@ -40,11 +40,11 @@ public class MasterDetailListController extends BaseController {
         }
     }
 
-    @BindView(R.id.recycler_view) RecyclerView mRecyclerView;
-    @Nullable @BindView(R.id.detail_container) ViewGroup mDetailContainer;
+    @BindView(R.id.recycler_view) RecyclerView recyclerView;
+    @Nullable @BindView(R.id.detail_container) ViewGroup detailContainer;
 
-    private int mSelectedIndex;
-    private boolean mTwoPaneView;
+    private int selectedIndex;
+    private boolean twoPaneView;
 
     @Override
     protected View inflateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
@@ -55,13 +55,13 @@ public class MasterDetailListController extends BaseController {
     protected void onViewBound(@NonNull View view) {
         super.onViewBound(view);
 
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
-        mRecyclerView.setAdapter(new DetailItemAdapter(LayoutInflater.from(view.getContext()), DetailItemModel.values()));
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
+        recyclerView.setAdapter(new DetailItemAdapter(LayoutInflater.from(view.getContext()), DetailItemModel.values()));
 
-        mTwoPaneView = (mDetailContainer != null);
-        if (mTwoPaneView) {
-            onRowSelected(mSelectedIndex);
+        twoPaneView = (detailContainer != null);
+        if (twoPaneView) {
+            onRowSelected(selectedIndex);
         }
     }
 
@@ -69,14 +69,14 @@ public class MasterDetailListController extends BaseController {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putInt(KEY_SELECTED_INDEX, mSelectedIndex);
+        outState.putInt(KEY_SELECTED_INDEX, selectedIndex);
     }
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
-        mSelectedIndex = savedInstanceState.getInt(KEY_SELECTED_INDEX);
+        selectedIndex = savedInstanceState.getInt(KEY_SELECTED_INDEX);
     }
 
     @Override
@@ -85,13 +85,13 @@ public class MasterDetailListController extends BaseController {
     }
 
     void onRowSelected(int index) {
-        mSelectedIndex = index;
+        selectedIndex = index;
 
         DetailItemModel model = DetailItemModel.values()[index];
         ChildController controller = new ChildController(model.detail, model.backgroundColor, true);
 
-        if (mTwoPaneView) {
-            getChildRouter(mDetailContainer, null).setRoot(RouterTransaction.with(controller));
+        if (twoPaneView) {
+            getChildRouter(detailContainer, null).setRoot(RouterTransaction.with(controller));
         } else {
             getRouter().pushController(RouterTransaction.with(controller)
                     .pushChangeHandler(new HorizontalChangeHandler())
@@ -101,34 +101,34 @@ public class MasterDetailListController extends BaseController {
 
     class DetailItemAdapter extends RecyclerView.Adapter<DetailItemAdapter.ViewHolder> {
 
-        private final LayoutInflater mInflater;
-        private final DetailItemModel[] mItems;
+        private final LayoutInflater inflater;
+        private final DetailItemModel[] items;
 
         public DetailItemAdapter(LayoutInflater inflater, DetailItemModel[] items) {
-            mInflater = inflater;
-            mItems = items;
+            this.inflater = inflater;
+            this.items = items;
         }
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new ViewHolder(mInflater.inflate(R.layout.row_detail_item, parent, false));
+            return new ViewHolder(inflater.inflate(R.layout.row_detail_item, parent, false));
         }
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.bind(mItems[position], position);
+            holder.bind(items[position], position);
         }
 
         @Override
         public int getItemCount() {
-            return mItems.length;
+            return items.length;
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
 
-            @BindView(R.id.row_root) View mRoot;
-            @BindView(R.id.tv_title) TextView mTvTitle;
-            private int mPosition;
+            @BindView(R.id.row_root) View root;
+            @BindView(R.id.tv_title) TextView tvTitle;
+            private int position;
 
             public ViewHolder(View itemView) {
                 super(itemView);
@@ -136,19 +136,19 @@ public class MasterDetailListController extends BaseController {
             }
 
             void bind(DetailItemModel item, int position) {
-                mTvTitle.setText(item.title);
-                mPosition = position;
+                tvTitle.setText(item.title);
+                this.position = position;
 
-                if (mTwoPaneView && position == mSelectedIndex) {
-                    mRoot.setBackgroundColor(ContextCompat.getColor(mRoot.getContext(), R.color.grey_400));
+                if (twoPaneView && position == selectedIndex) {
+                    root.setBackgroundColor(ContextCompat.getColor(root.getContext(), R.color.grey_400));
                 } else {
-                    mRoot.setBackgroundColor(ContextCompat.getColor(mRoot.getContext(), android.R.color.transparent));
+                    root.setBackgroundColor(ContextCompat.getColor(root.getContext(), android.R.color.transparent));
                 }
             }
 
             @OnClick(R.id.row_root)
             void onRowClick() {
-                onRowSelected(mPosition);
+                onRowSelected(position);
                 notifyDataSetChanged();
             }
 

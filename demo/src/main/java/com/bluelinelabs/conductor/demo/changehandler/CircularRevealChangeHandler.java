@@ -20,8 +20,8 @@ public class CircularRevealChangeHandler extends AnimatorChangeHandler {
     private static final String KEY_CX = "CircularRevealChangeHandler.cx";
     private static final String KEY_CY = "CircularRevealChangeHandler.cy";
 
-    private int mCx;
-    private int mCy;
+    private int cx;
+    private int cy;
 
     public CircularRevealChangeHandler() { }
 
@@ -73,8 +73,8 @@ public class CircularRevealChangeHandler extends AnimatorChangeHandler {
         int relativeLeft = fromLocation[0] - containerLocation[0];
         int relativeTop  = fromLocation[1] - containerLocation[1];
 
-        mCx = fromView.getWidth() / 2 + relativeLeft;
-        mCy = fromView.getHeight() / 2 + relativeTop;
+        cx = fromView.getWidth() / 2 + relativeLeft;
+        cy = fromView.getHeight() / 2 + relativeTop;
     }
 
     /**
@@ -116,18 +116,18 @@ public class CircularRevealChangeHandler extends AnimatorChangeHandler {
      */
     public CircularRevealChangeHandler(int cx, int cy, long duration, boolean removesFromViewOnPush) {
         super(duration, removesFromViewOnPush);
-        mCx = cx;
-        mCy = cy;
+        this.cx = cx;
+        this.cy = cy;
     }
 
     @Override
     protected Animator getAnimator(@NonNull ViewGroup container, View from, View to, boolean isPush, boolean toAddedToContainer) {
-        final float radius = (float) Math.hypot(mCx, mCy);
+        final float radius = (float) Math.hypot(cx, cy);
         Animator animator = null;
         if (isPush && to != null) {
-            animator = ViewAnimationUtils.createCircularReveal(to, mCx, mCy, 0, radius);
+            animator = ViewAnimationUtils.createCircularReveal(to, cx, cy, 0, radius);
         } else if (!isPush && from != null) {
-            animator = ViewAnimationUtils.createCircularReveal(from, mCx, mCy, radius, 0);
+            animator = ViewAnimationUtils.createCircularReveal(from, cx, cy, radius, 0);
         }
         return animator;
     }
@@ -138,14 +138,14 @@ public class CircularRevealChangeHandler extends AnimatorChangeHandler {
     @Override
     public void saveToBundle(@NonNull Bundle bundle) {
         super.saveToBundle(bundle);
-        bundle.putInt(KEY_CX, mCx);
-        bundle.putInt(KEY_CY, mCy);
+        bundle.putInt(KEY_CX, cx);
+        bundle.putInt(KEY_CY, cy);
     }
 
     @Override
     public void restoreFromBundle(@NonNull Bundle bundle) {
         super.restoreFromBundle(bundle);
-        mCx = bundle.getInt(KEY_CX);
-        mCy = bundle.getInt(KEY_CY);
+        cx = bundle.getInt(KEY_CX);
+        cy = bundle.getInt(KEY_CY);
     }
 }

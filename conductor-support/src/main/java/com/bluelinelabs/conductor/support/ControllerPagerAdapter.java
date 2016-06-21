@@ -19,16 +19,16 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
     private static final String KEY_SAVED_PAGES = "ControllerPagerAdapter.savedStates";
     private static final String KEY_SAVES_STATE = "ControllerPagerAdapter.savesState";
 
-    private final Controller mHost;
-    private boolean mSavesState;
-    private SparseArray<Bundle> mSavedPages = new SparseArray<>();
+    private final Controller host;
+    private boolean savesState;
+    private SparseArray<Bundle> savedPages = new SparseArray<>();
 
     /**
      * Creates a new ControllerPagerAdapter using the passed host.
      */
     public ControllerPagerAdapter(Controller host, boolean saveControllerState) {
-        mHost = host;
-        mSavesState = saveControllerState;
+        this.host = host;
+        savesState = saveControllerState;
     }
 
     /**
@@ -40,9 +40,9 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
         final String name = makeControllerName(container.getId(), getItemId(position));
 
-        Router router = mHost.getChildRouter(container, name);
-        if (mSavesState && !router.hasRootController()) {
-            Bundle routerSavedState = mSavedPages.get(position);
+        Router router = host.getChildRouter(container, name);
+        if (savesState && !router.hasRootController()) {
+            Bundle routerSavedState = savedPages.get(position);
 
             if (routerSavedState != null) {
                 router.restoreInstanceState(routerSavedState);
@@ -63,13 +63,13 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
     public void destroyItem(ViewGroup container, int position, Object object) {
         Router router = ((Controller)object).getRouter();
 
-        if (mSavesState) {
+        if (savesState) {
             Bundle savedState = new Bundle();
             router.saveInstanceState(savedState);
-            mSavedPages.put(position, savedState);
+            savedPages.put(position, savedState);
         }
 
-        mHost.removeChildRouter(router);
+        host.removeChildRouter(router);
     }
 
     @Override
@@ -80,8 +80,8 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
     @Override
     public Parcelable saveState() {
         Bundle bundle = new Bundle();
-        bundle.putBoolean(KEY_SAVES_STATE, mSavesState);
-        bundle.putSparseParcelableArray(KEY_SAVED_PAGES, mSavedPages);
+        bundle.putBoolean(KEY_SAVES_STATE, savesState);
+        bundle.putSparseParcelableArray(KEY_SAVED_PAGES, savedPages);
         return bundle;
     }
 
@@ -89,8 +89,8 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
     public void restoreState(Parcelable state, ClassLoader loader) {
         Bundle bundle = (Bundle)state;
         if (state != null) {
-            mSavesState = bundle.getBoolean(KEY_SAVES_STATE, false);
-            mSavedPages = bundle.getSparseParcelableArray(KEY_SAVED_PAGES);
+            savesState = bundle.getBoolean(KEY_SAVES_STATE, false);
+            savedPages = bundle.getSparseParcelableArray(KEY_SAVED_PAGES);
         }
     }
 

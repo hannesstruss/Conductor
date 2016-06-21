@@ -19,7 +19,7 @@ public class TargetTitleEntryController extends BaseController {
         void onTitlePicked(String option);
     }
 
-    @BindView(R.id.edit_text) EditText mEditText;
+    @BindView(R.id.edit_text) EditText editText;
 
     public <T extends Controller & TargetTitleEntryControllerListener> TargetTitleEntryController(T targetController) {
         setTargetController(targetController);
@@ -41,7 +41,7 @@ public class TargetTitleEntryController extends BaseController {
     @OnClick(R.id.btn_use_title) void optionPicked() {
         Controller targetController = getTargetController();
         if (targetController != null) {
-            ((TargetTitleEntryControllerListener)targetController).onTitlePicked(mEditText.getText().toString());
+            ((TargetTitleEntryControllerListener)targetController).onTitlePicked(editText.getText().toString());
             getRouter().popController(this);
         }
     }

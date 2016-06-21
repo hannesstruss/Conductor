@@ -13,7 +13,7 @@ import butterknife.Unbinder;
 
 public abstract class ButterKnifeController extends RxController {
 
-    private Unbinder mUnbinder;
+    private Unbinder unbinder;
 
     protected ButterKnifeController() { }
     protected ButterKnifeController(Bundle args) {
@@ -26,7 +26,7 @@ public abstract class ButterKnifeController extends RxController {
     @Override
     protected View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
         View view = inflateView(inflater, container);
-        mUnbinder = ButterKnife.bind(this, view);
+        unbinder = ButterKnife.bind(this, view);
         onViewBound(view);
         return view;
     }
@@ -36,7 +36,7 @@ public abstract class ButterKnifeController extends RxController {
     @Override
     protected void onDestroyView(View view) {
         super.onDestroyView(view);
-        mUnbinder.unbind();
+        unbinder.unbind();
     }
 
 }

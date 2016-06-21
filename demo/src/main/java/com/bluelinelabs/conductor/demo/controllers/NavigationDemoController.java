@@ -24,10 +24,10 @@ public class NavigationDemoController extends BaseController {
     private static final String KEY_INDEX = "NavigationDemoController.index";
     private static final String KEY_DISPLAY_UP = "NavigationDemoController.displayUp";
 
-    @BindView(R.id.tv_title) TextView mTvTitle;
+    @BindView(R.id.tv_title) TextView tvTitle;
 
-    private int mIndex;
-    private boolean mDisplayUp;
+    private int index;
+    private boolean displayUp;
 
     public NavigationDemoController(int index, boolean displayUpButton) {
         this(new BundleBuilder(new Bundle())
@@ -38,8 +38,8 @@ public class NavigationDemoController extends BaseController {
 
     public NavigationDemoController(Bundle args) {
         super(args);
-        mIndex = args.getInt(KEY_INDEX);
-        mDisplayUp = args.getBoolean(KEY_DISPLAY_UP);
+        index = args.getInt(KEY_INDEX);
+        displayUp = args.getBoolean(KEY_DISPLAY_UP);
     }
 
     @NonNull
@@ -52,12 +52,12 @@ public class NavigationDemoController extends BaseController {
     protected void onViewBound(@NonNull View view) {
         super.onViewBound(view);
 
-        if (!mDisplayUp) {
+        if (!displayUp) {
             view.findViewById(R.id.btn_up).setVisibility(View.GONE);
         }
 
-        view.setBackgroundColor(ColorUtil.getMaterialColor(getResources(), mIndex));
-        mTvTitle.setText(getResources().getString(R.string.navigation_title, mIndex));
+        view.setBackgroundColor(ColorUtil.getMaterialColor(getResources(), index));
+        tvTitle.setText(getResources().getString(R.string.navigation_title, index));
     }
 
     @Override
@@ -66,7 +66,7 @@ public class NavigationDemoController extends BaseController {
     }
 
     @OnClick(R.id.btn_next) void onNextClicked() {
-        getRouter().pushController(RouterTransaction.with(new NavigationDemoController(mIndex + 1, mDisplayUp))
+        getRouter().pushController(RouterTransaction.with(new NavigationDemoController(index + 1, displayUp))
                 .pushChangeHandler(new HorizontalChangeHandler())
                 .popChangeHandler(new HorizontalChangeHandler()));
     }

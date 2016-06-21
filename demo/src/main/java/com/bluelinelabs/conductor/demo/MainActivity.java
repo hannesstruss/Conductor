@@ -16,30 +16,30 @@ import butterknife.Unbinder;
 
 public class MainActivity extends AppCompatActivity implements ActionBarProvider {
 
-    @BindView(R.id.toolbar) Toolbar mToolbar;
-    @BindView(R.id.controller_container) ViewGroup mContainer;
+    @BindView(R.id.toolbar) Toolbar toolbar;
+    @BindView(R.id.controller_container) ViewGroup container;
 
-    private Router mRouter;
-    private Unbinder mUnbinder;
+    private Router router;
+    private Unbinder unbinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        mUnbinder = ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
 
-        setSupportActionBar(mToolbar);
+        setSupportActionBar(toolbar);
 
-        mRouter = Conductor.attachRouter(this, mContainer, savedInstanceState);
-        if (!mRouter.hasRootController()) {
-            mRouter.setRoot(RouterTransaction.with(new HomeController()));
+        router = Conductor.attachRouter(this, container, savedInstanceState);
+        if (!router.hasRootController()) {
+            router.setRoot(RouterTransaction.with(new HomeController()));
         }
     }
 
     @Override
     public void onBackPressed() {
-        if (!mRouter.handleBack()) {
+        if (!router.handleBack()) {
             super.onBackPressed();
         }
     }
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements ActionBarProvider
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mUnbinder.unbind();
+        unbinder.unbind();
     }
 
 }

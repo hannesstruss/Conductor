@@ -19,7 +19,7 @@ import com.bluelinelabs.conductor.demo.util.ColorUtil;
 public class ParentController extends BaseController {
 
     private static final int NUMBER_OF_CHILDREN = 5;
-    private boolean mFinishing;
+    private boolean finishing;
 
     @NonNull
     @Override
@@ -71,8 +71,8 @@ public class ParentController extends BaseController {
 
     @Override
     public boolean handleBack() {
-        if (!mFinishing) {
-            mFinishing = true;
+        if (!finishing) {
+            finishing = true;
             return super.handleBack();
         }
         return true;

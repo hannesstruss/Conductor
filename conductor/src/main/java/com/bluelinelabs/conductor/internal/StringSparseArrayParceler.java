@@ -6,24 +6,24 @@ import android.util.SparseArray;
 
 public class StringSparseArrayParceler implements Parcelable {
 
-    private final SparseArray<String> mStringSparseArray;
+    private final SparseArray<String> stringSparseArray;
 
     public StringSparseArrayParceler(SparseArray<String> stringSparseArray) {
-        mStringSparseArray = stringSparseArray;
+        this.stringSparseArray = stringSparseArray;
     }
 
     private StringSparseArrayParceler(Parcel in) {
-        mStringSparseArray = new SparseArray<>();
+        stringSparseArray = new SparseArray<>();
 
         final int size = in.readInt();
 
         for (int i = 0; i < size; i++) {
-            mStringSparseArray.put(in.readInt(), in.readString());
+            stringSparseArray.put(in.readInt(), in.readString());
         }
     }
 
     public SparseArray<String> getStringSparseArray() {
-        return mStringSparseArray;
+        return stringSparseArray;
     }
 
     public int describeContents() {
@@ -31,15 +31,15 @@ public class StringSparseArrayParceler implements Parcelable {
     }
 
     public void writeToParcel(Parcel out, int flags) {
-        final int size = mStringSparseArray.size();
+        final int size = stringSparseArray.size();
 
         out.writeInt(size);
 
         for (int i = 0; i < size; i++) {
-            int key = mStringSparseArray.keyAt(i);
+            int key = stringSparseArray.keyAt(i);
 
             out.writeInt(key);
-            out.writeString(mStringSparseArray.get(key));
+            out.writeString(stringSparseArray.get(key));
         }
     }
 

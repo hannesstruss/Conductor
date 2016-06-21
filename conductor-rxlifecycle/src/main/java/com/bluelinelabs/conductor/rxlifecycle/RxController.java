@@ -15,7 +15,7 @@ import rx.subjects.BehaviorSubject;
  */
 public abstract class RxController extends Controller implements ControllerLifecycleProvider {
 
-    private final BehaviorSubject<ControllerEvent> mLifecycleSubject;
+    private final BehaviorSubject<ControllerEvent> lifecycleSubject;
 
     public RxController() {
         this(null);
@@ -23,28 +23,28 @@ public abstract class RxController extends Controller implements ControllerLifec
 
     public RxController(Bundle args) {
         super(args);
-        mLifecycleSubject = ControllerLifecycleSubjectHelper.create(this);
+        lifecycleSubject = ControllerLifecycleSubjectHelper.create(this);
     }
 
     @Override
     @NonNull
     @CheckResult
     public final Observable<ControllerEvent> lifecycle() {
-        return mLifecycleSubject.asObservable();
+        return lifecycleSubject.asObservable();
     }
 
     @Override
     @NonNull
     @CheckResult
     public final <T> Observable.Transformer<T, T> bindUntilEvent(@NonNull ControllerEvent event) {
-        return RxLifecycle.bindUntilEvent(mLifecycleSubject, event);
+        return RxLifecycle.bindUntilEvent(lifecycleSubject, event);
     }
 
     @Override
     @NonNull
     @CheckResult
     public final <T> Observable.Transformer<T, T> bindToLifecycle() {
-        return RxControllerLifecycle.bindController(mLifecycleSubject);
+        return RxControllerLifecycle.bindController(lifecycleSubject);
     }
 
 }

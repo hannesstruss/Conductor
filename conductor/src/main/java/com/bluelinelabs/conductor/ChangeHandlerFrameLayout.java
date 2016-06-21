@@ -17,7 +17,7 @@ import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListen
  */
 public class ChangeHandlerFrameLayout extends FrameLayout implements ControllerChangeListener {
 
-    private int mInProgressTransactionCount;
+    private int inProgressTransactionCount;
 
     public ChangeHandlerFrameLayout(Context context) {
         super(context);
@@ -38,17 +38,17 @@ public class ChangeHandlerFrameLayout extends FrameLayout implements ControllerC
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return (mInProgressTransactionCount > 0) || super.onInterceptTouchEvent(ev);
+        return (inProgressTransactionCount > 0) || super.onInterceptTouchEvent(ev);
     }
 
     @Override
     public void onChangeStarted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
-        mInProgressTransactionCount++;
+        inProgressTransactionCount++;
     }
 
     @Override
     public void onChangeCompleted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
-        mInProgressTransactionCount--;
+        inProgressTransactionCount--;
     }
 
 }

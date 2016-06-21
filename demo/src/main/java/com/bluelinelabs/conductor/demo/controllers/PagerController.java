@@ -18,13 +18,13 @@ public class PagerController extends BaseController {
 
     private int[] PAGE_COLORS = new int[]{R.color.green_300, R.color.cyan_300, R.color.deep_purple_300, R.color.lime_300, R.color.red_300};
 
-    @BindView(R.id.tab_layout) TabLayout mTabLayout;
-    @BindView(R.id.view_pager) ViewPager mViewPager;
+    @BindView(R.id.tab_layout) TabLayout tabLayout;
+    @BindView(R.id.view_pager) ViewPager viewPager;
 
-    private final ControllerPagerAdapter mPagerAdapter;
+    private final ControllerPagerAdapter pagerAdapter;
 
     public PagerController() {
-        mPagerAdapter = new ControllerPagerAdapter(this, false) {
+        pagerAdapter = new ControllerPagerAdapter(this, false) {
             @Override
             public Controller getItem(int position) {
                 return new ChildController(String.format("Child #%d (Swipe to see more)", position), PAGE_COLORS[position], true);
@@ -45,13 +45,13 @@ public class PagerController extends BaseController {
     @Override
     protected void onViewBound(@NonNull View view) {
         super.onViewBound(view);
-        mViewPager.setAdapter(mPagerAdapter);
-        mTabLayout.setupWithViewPager(mViewPager);
+        viewPager.setAdapter(pagerAdapter);
+        tabLayout.setupWithViewPager(viewPager);
     }
 
     @Override
     protected void onDestroyView(View view) {
-        mViewPager.setAdapter(null);
+        viewPager.setAdapter(null);
         super.onDestroyView(view);
     }
 
