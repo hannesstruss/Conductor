@@ -17,7 +17,7 @@ public class TextController extends BaseController {
 
     private static final String KEY_TEXT = "TextController.text";
 
-    @BindView(R.id.text_view) TextView mTextView;
+    @BindView(R.id.text_view) TextView textView;
 
     public TextController(String text) {
         this(new BundleBuilder(new Bundle())
@@ -39,7 +39,7 @@ public class TextController extends BaseController {
     @Override
     public void onViewBound(@NonNull View view) {
         super.onViewBound(view);
-        mTextView.setText(getArgs().getString(KEY_TEXT));
+        textView.setText(getArgs().getString(KEY_TEXT));
     }
 
 }

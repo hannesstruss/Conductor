@@ -32,8 +32,8 @@ public class FlipChangeHandler extends AnimatorChangeHandler {
         }
     }
 
-    private final long mAnimationDuration;
-    private final FlipDirection mFlipDirection;
+    private final long animationDuration;
+    private final FlipDirection flipDirection;
 
     public FlipChangeHandler() {
         this(FlipDirection.RIGHT);
@@ -48,8 +48,8 @@ public class FlipChangeHandler extends AnimatorChangeHandler {
     }
 
     public FlipChangeHandler(FlipDirection flipDirection, long animationDuration) {
-        mFlipDirection = flipDirection;
-        mAnimationDuration = animationDuration;
+        this.flipDirection = flipDirection;
+        this.animationDuration = animationDuration;
     }
 
     @Override
@@ -59,22 +59,22 @@ public class FlipChangeHandler extends AnimatorChangeHandler {
         if (to != null) {
             to.setAlpha(0);
 
-            ObjectAnimator rotation = ObjectAnimator.ofFloat(to, mFlipDirection.property, mFlipDirection.inStartRotation, 0).setDuration(mAnimationDuration);
+            ObjectAnimator rotation = ObjectAnimator.ofFloat(to, flipDirection.property, flipDirection.inStartRotation, 0).setDuration(animationDuration);
             rotation.setInterpolator(new AccelerateDecelerateInterpolator());
             animatorSet.play(rotation);
 
-            Animator alpha = ObjectAnimator.ofFloat(to, View.ALPHA, 1).setDuration(mAnimationDuration / 2);
-            alpha.setStartDelay(mAnimationDuration / 3);
+            Animator alpha = ObjectAnimator.ofFloat(to, View.ALPHA, 1).setDuration(animationDuration / 2);
+            alpha.setStartDelay(animationDuration / 3);
             animatorSet.play(alpha);
         }
 
         if (from != null) {
-            ObjectAnimator rotation = ObjectAnimator.ofFloat(from, mFlipDirection.property, 0, mFlipDirection.outEndRotation).setDuration(mAnimationDuration);
+            ObjectAnimator rotation = ObjectAnimator.ofFloat(from, flipDirection.property, 0, flipDirection.outEndRotation).setDuration(animationDuration);
             rotation.setInterpolator(new AccelerateDecelerateInterpolator());
             animatorSet.play(rotation);
 
-            Animator alpha = ObjectAnimator.ofFloat(from, View.ALPHA, 0).setDuration(mAnimationDuration / 2);
-            alpha.setStartDelay(mAnimationDuration / 3);
+            Animator alpha = ObjectAnimator.ofFloat(from, View.ALPHA, 0).setDuration(animationDuration / 2);
+            alpha.setStartDelay(animationDuration / 3);
             animatorSet.play(alpha);
         }
 
@@ -85,7 +85,7 @@ public class FlipChangeHandler extends AnimatorChangeHandler {
     protected void resetFromView(@NonNull View from) {
         from.setAlpha(1);
 
-        switch (mFlipDirection) {
+        switch (flipDirection) {
             case LEFT:
             case RIGHT:
                 from.setRotationY(0);

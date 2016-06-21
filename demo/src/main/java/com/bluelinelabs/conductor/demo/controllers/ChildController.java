@@ -20,7 +20,7 @@ public class ChildController extends BaseController {
     private static final String KEY_BG_COLOR = "ChildController.bgColor";
     private static final String KEY_COLOR_IS_RES = "ChildController.colorIsResId";
 
-    @BindView(R.id.tv_title) TextView mTvTitle;
+    @BindView(R.id.tv_title) TextView tvTitle;
 
     public ChildController(String title, int backgroundColor, boolean colorIsResId) {
         this(new BundleBuilder(new Bundle())
@@ -44,7 +44,7 @@ public class ChildController extends BaseController {
     protected void onViewBound(@NonNull View view) {
         super.onViewBound(view);
 
-        mTvTitle.setText(getArgs().getString(KEY_TITLE));
+        tvTitle.setText(getArgs().getString(KEY_TITLE));
 
         int bgColor = getArgs().getInt(KEY_BG_COLOR);
         if (getArgs().getBoolean(KEY_COLOR_IS_RES)) {

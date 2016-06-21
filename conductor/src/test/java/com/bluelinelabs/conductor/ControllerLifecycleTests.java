@@ -23,21 +23,21 @@ import org.robolectric.util.ActivityController;
 @Config(manifest = Config.NONE)
 public class ControllerLifecycleTests {
 
-    private ActivityController<TestActivity> mActivityController;
-    private Router mRouter;
+    private ActivityController<TestActivity> activityController;
+    private Router router;
 
-    private CallState mCurrentCallState;
+    private CallState currentCallState;
 
     public void createActivityController(Bundle savedInstanceState) {
-        mActivityController = Robolectric.buildActivity(TestActivity.class).create(savedInstanceState).start();
+        activityController = Robolectric.buildActivity(TestActivity.class).create(savedInstanceState).start();
 
         @IdRes int containerId = 4;
-        FrameLayout routerContainer = new FrameLayout(mActivityController.get());
+        FrameLayout routerContainer = new FrameLayout(activityController.get());
         routerContainer.setId(containerId);
 
-        mRouter = Conductor.attachRouter(mActivityController.get(), routerContainer, savedInstanceState);
-        if (!mRouter.hasRootController()) {
-            mRouter.setRoot(RouterTransaction.with(new TestController()));
+        router = Conductor.attachRouter(activityController.get(), routerContainer, savedInstanceState);
+        if (!router.hasRootController()) {
+            router.setRoot(RouterTransaction.with(new TestController()));
         }
     }
 
@@ -45,7 +45,7 @@ public class ControllerLifecycleTests {
     public void setup() {
         createActivityController(null);
 
-        mCurrentCallState = new CallState();
+        currentCallState = new CallState();
     }
 
     @Test
@@ -56,13 +56,13 @@ public class ControllerLifecycleTests {
         CallState expectedCallState = new CallState();
 
         assertCalls(expectedCallState, controller);
-        mRouter.pushController(RouterTransaction.with(controller)
+        router.pushController(RouterTransaction.with(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller))
                 .popChangeHandler(getPopHandler(expectedCallState, controller)));
 
         assertCalls(expectedCallState, controller);
 
-        mRouter.popCurrentController();
+        router.popCurrentController();
 
         Assert.assertNull(controller.getView());
 
@@ -77,20 +77,20 @@ public class ControllerLifecycleTests {
         CallState expectedCallState = new CallState();
 
         assertCalls(expectedCallState, controller);
-        mRouter.pushController(RouterTransaction.with(controller)
+        router.pushController(RouterTransaction.with(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller)));
 
         assertCalls(expectedCallState, controller);
 
-        mActivityController.pause();
+        activityController.pause();
 
         assertCalls(expectedCallState, controller);
 
-        mActivityController.stop();
+        activityController.stop();
 
         assertCalls(expectedCallState, controller);
 
-        mActivityController.destroy();
+        activityController.destroy();
 
         expectedCallState.detachCalls++;
         expectedCallState.destroyViewCalls++;
@@ -106,34 +106,34 @@ public class ControllerLifecycleTests {
         CallState expectedCallState = new CallState();
 
         assertCalls(expectedCallState, controller);
-        mRouter.pushController(RouterTransaction.with(controller)
+        router.pushController(RouterTransaction.with(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller))
                 .tag("root"));
 
         assertCalls(expectedCallState, controller);
 
-        mActivityController.get().isChangingConfigurations = true;
+        activityController.get().isChangingConfigurations = true;
 
         Bundle bundle = new Bundle();
-        mActivityController.saveInstanceState(bundle);
+        activityController.saveInstanceState(bundle);
 
         expectedCallState.saveViewStateCalls++;
         expectedCallState.saveInstanceStateCalls++;
         assertCalls(expectedCallState, controller);
 
-        mActivityController.pause();
+        activityController.pause();
         assertCalls(expectedCallState, controller);
 
-        mActivityController.stop();
+        activityController.stop();
         assertCalls(expectedCallState, controller);
 
-        mActivityController.destroy();
+        activityController.destroy();
         expectedCallState.detachCalls++;
         expectedCallState.destroyViewCalls++;
         assertCalls(expectedCallState, controller);
 
         createActivityController(bundle);
-        controller = (TestController)mRouter.getControllerWithTag("root");
+        controller = (TestController)router.getControllerWithTag("root");
 
         expectedCallState.restoreInstanceStateCalls++;
         expectedCallState.restoreViewStateCalls++;
@@ -142,15 +142,15 @@ public class ControllerLifecycleTests {
         expectedCallState.createViewCalls++;
 
         // Lifecycle listener isn't attached during restore, grab the current views from the controller for this stuff...
-        mCurrentCallState.restoreInstanceStateCalls = controller.currentCallState.restoreInstanceStateCalls;
-        mCurrentCallState.restoreViewStateCalls = controller.currentCallState.restoreViewStateCalls;
-        mCurrentCallState.changeStartCalls = controller.currentCallState.changeStartCalls;
-        mCurrentCallState.changeEndCalls = controller.currentCallState.changeEndCalls;
-        mCurrentCallState.createViewCalls = controller.currentCallState.createViewCalls;
+        currentCallState.restoreInstanceStateCalls = controller.currentCallState.restoreInstanceStateCalls;
+        currentCallState.restoreViewStateCalls = controller.currentCallState.restoreViewStateCalls;
+        currentCallState.changeStartCalls = controller.currentCallState.changeStartCalls;
+        currentCallState.changeEndCalls = controller.currentCallState.changeEndCalls;
+        currentCallState.createViewCalls = controller.currentCallState.createViewCalls;
 
         assertCalls(expectedCallState, controller);
 
-        mActivityController.resume();
+        activityController.resume();
         assertCalls(expectedCallState, controller);
     }
 
@@ -162,21 +162,21 @@ public class ControllerLifecycleTests {
         CallState expectedCallState = new CallState();
 
         assertCalls(expectedCallState, controller);
-        mRouter.pushController(RouterTransaction.with(controller)
+        router.pushController(RouterTransaction.with(controller)
                 .pushChangeHandler(getPushHandler(expectedCallState, controller)));
 
         assertCalls(expectedCallState, controller);
 
-        mActivityController.pause();
+        activityController.pause();
 
         Bundle bundle = new Bundle();
-        mActivityController.saveInstanceState(bundle);
+        activityController.saveInstanceState(bundle);
 
         expectedCallState.saveInstanceStateCalls++;
         expectedCallState.saveViewStateCalls++;
         assertCalls(expectedCallState, controller);
 
-        mActivityController.resume();
+        activityController.resume();
     }
 
     @Test
@@ -376,7 +376,7 @@ public class ControllerLifecycleTests {
             }
         });
 
-        mRouter.pushController(RouterTransaction.with(testController)
+        router.pushController(RouterTransaction.with(testController)
                 .pushChangeHandler(new ChangeHandler(new ChangeHandlerListener() {
                     @Override
                     public void performChange(@NonNull ViewGroup container, View from, View to, boolean isPush, @NonNull ControllerChangeCompletedListener changeListener) {
@@ -394,7 +394,7 @@ public class ControllerLifecycleTests {
                     }
                 })));
 
-        mRouter.popController(testController);
+        router.popController(testController);
 
         Assert.assertEquals(2, callState.createViewCalls);
         Assert.assertEquals(2, callState.attachCalls);
@@ -406,7 +406,7 @@ public class ControllerLifecycleTests {
     @Test
     public void testChildLifecycle() {
         Controller parent = new TestController();
-        mRouter.pushController(RouterTransaction.with(parent)
+        router.pushController(RouterTransaction.with(parent)
                 .pushChangeHandler(new ChangeHandler(new ChangeHandlerListener() {
                     @Override
                     public void performChange(@NonNull ViewGroup container, View from, View to, boolean isPush, @NonNull ControllerChangeCompletedListener changeListener) {
@@ -439,7 +439,7 @@ public class ControllerLifecycleTests {
     @Test
     public void testChildLifecycle2() {
         Controller parent = new TestController();
-        mRouter.pushController(RouterTransaction.with(parent)
+        router.pushController(RouterTransaction.with(parent)
                 .pushChangeHandler(new ChangeHandler(new ChangeHandlerListener() {
                     @Override
                     public void performChange(@NonNull ViewGroup container, View from, View to, boolean isPush, @NonNull ControllerChangeCompletedListener changeListener) {
@@ -472,7 +472,7 @@ public class ControllerLifecycleTests {
 
         assertCalls(expectedCallState, child);
 
-        mRouter.popCurrentController();
+        router.popCurrentController();
 
         assertCalls(expectedCallState, child);
     }
@@ -523,64 +523,64 @@ public class ControllerLifecycleTests {
 
     private void assertCalls(CallState callState, TestController controller) {
         Assert.assertEquals("Expected call counts and controller call counts do not match.", callState, controller.currentCallState);
-        Assert.assertEquals("Expected call counts and lifecycle call counts do not match.", callState, mCurrentCallState);
+        Assert.assertEquals("Expected call counts and lifecycle call counts do not match.", callState, currentCallState);
     }
 
     private void attachLifecycleListener(Controller controller) {
         controller.addLifecycleListener(new LifecycleListener() {
             @Override
             public void onChangeStart(@NonNull Controller controller, @NonNull ControllerChangeHandler changeHandler, @NonNull ControllerChangeType changeType) {
-                mCurrentCallState.changeStartCalls++;
+                currentCallState.changeStartCalls++;
             }
 
             @Override
             public void onChangeEnd(@NonNull Controller controller, @NonNull ControllerChangeHandler changeHandler, @NonNull ControllerChangeType changeType) {
-                mCurrentCallState.changeEndCalls++;
+                currentCallState.changeEndCalls++;
             }
 
             @Override
             public void postCreateView(@NonNull Controller controller, @NonNull View view) {
-                mCurrentCallState.createViewCalls++;
+                currentCallState.createViewCalls++;
             }
 
             @Override
             public void postAttach(@NonNull Controller controller, @NonNull View view) {
-                mCurrentCallState.attachCalls++;
+                currentCallState.attachCalls++;
             }
 
             @Override
             public void postDestroyView(@NonNull Controller controller) {
-                mCurrentCallState.destroyViewCalls++;
+                currentCallState.destroyViewCalls++;
             }
 
             @Override
             public void postDetach(@NonNull Controller controller, @NonNull View view) {
-                mCurrentCallState.detachCalls++;
+                currentCallState.detachCalls++;
             }
 
             @Override
             public void postDestroy(@NonNull Controller controller) {
-                mCurrentCallState.destroyCalls++;
+                currentCallState.destroyCalls++;
             }
 
             @Override
             public void onSaveInstanceState(@NonNull Controller controller, @NonNull Bundle outState) {
-                mCurrentCallState.saveInstanceStateCalls++;
+                currentCallState.saveInstanceStateCalls++;
             }
 
             @Override
             public void onRestoreInstanceState(@NonNull Controller controller, @NonNull Bundle savedInstanceState) {
-                mCurrentCallState.restoreInstanceStateCalls++;
+                currentCallState.restoreInstanceStateCalls++;
             }
 
             @Override
             public void onSaveViewState(@NonNull Controller controller, @NonNull Bundle outState) {
-                mCurrentCallState.saveViewStateCalls++;
+                currentCallState.saveViewStateCalls++;
             }
 
             @Override
             public void onRestoreViewState(@NonNull Controller controller, @NonNull Bundle savedViewState) {
-                mCurrentCallState.restoreViewStateCalls++;
+                currentCallState.restoreViewStateCalls++;
             }
         });
     }
@@ -591,17 +591,17 @@ public class ControllerLifecycleTests {
 
     public static class ChangeHandler extends ControllerChangeHandler {
 
-        private ChangeHandlerListener mListener;
+        private ChangeHandlerListener listener;
 
         public ChangeHandler() { }
 
         public ChangeHandler(ChangeHandlerListener listener) {
-            mListener = listener;
+            this.listener = listener;
         }
 
         @Override
         public void performChange(@NonNull ViewGroup container, View from, View to, boolean isPush, @NonNull ControllerChangeCompletedListener changeListener) {
-            mListener.performChange(container, from, to, isPush, changeListener);
+            listener.performChange(container, from, to, isPush, changeListener);
         }
     }
 

@@ -27,7 +27,7 @@ public class RxLifecycleController extends BaseController {
 
     private static final String TAG = "RxLifecycleController";
 
-    @BindView(R.id.tv_title) TextView mTvTitle;
+    @BindView(R.id.tv_title) TextView tvTitle;
 
     public RxLifecycleController() {
 
@@ -51,7 +51,7 @@ public class RxLifecycleController extends BaseController {
     public void onViewBound(@NonNull View view) {
         Log.i(TAG, "onCreateView() called");
 
-        mTvTitle.setText(getResources().getString(R.string.rxlifecycle_title, TAG));
+        tvTitle.setText(getResources().getString(R.string.rxlifecycle_title, TAG));
 
         Observable.interval(1, TimeUnit.SECONDS)
                 .doOnUnsubscribe(new Action0() {

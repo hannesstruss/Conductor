@@ -17,9 +17,9 @@ public class RouterTransaction {
     @NonNull final Controller controller;
     private String tag;
 
-    private ControllerChangeHandler mPushControllerChangeHandler;
-    private ControllerChangeHandler mPopControllerChangeHandler;
-    private boolean mAttachedToRouter;
+    private ControllerChangeHandler pushControllerChangeHandler;
+    private ControllerChangeHandler popControllerChangeHandler;
+    private boolean attachedToRouter;
 
     public static RouterTransaction with(@NonNull Controller controller) {
         return new RouterTransaction(controller);
@@ -31,14 +31,14 @@ public class RouterTransaction {
 
     RouterTransaction(@NonNull Bundle bundle) {
         controller = Controller.newInstance(bundle.getBundle(KEY_VIEW_CONTROLLER_BUNDLE));
-        mPushControllerChangeHandler = ControllerChangeHandler.fromBundle(bundle.getBundle(KEY_PUSH_TRANSITION));
-        mPopControllerChangeHandler = ControllerChangeHandler.fromBundle(bundle.getBundle(KEY_POP_TRANSITION));
+        pushControllerChangeHandler = ControllerChangeHandler.fromBundle(bundle.getBundle(KEY_PUSH_TRANSITION));
+        popControllerChangeHandler = ControllerChangeHandler.fromBundle(bundle.getBundle(KEY_POP_TRANSITION));
         tag = bundle.getString(KEY_TAG);
-        mAttachedToRouter = bundle.getBoolean(KEY_ATTACHED_TO_ROUTER);
+        attachedToRouter = bundle.getBoolean(KEY_ATTACHED_TO_ROUTER);
     }
 
     void onAttachedToRouter() {
-        mAttachedToRouter = true;
+        attachedToRouter = true;
     }
 
     String tag() {
@@ -46,7 +46,7 @@ public class RouterTransaction {
     }
 
     public RouterTransaction tag(String tag) {
-        if (!mAttachedToRouter) {
+        if (!attachedToRouter) {
             this.tag = tag;
             return this;
         } else {
@@ -57,14 +57,14 @@ public class RouterTransaction {
     ControllerChangeHandler pushChangeHandler() {
         ControllerChangeHandler handler = controller.getOverriddenPushHandler();
         if (handler == null) {
-            handler = mPushControllerChangeHandler;
+            handler = pushControllerChangeHandler;
         }
         return handler;
     }
 
     public RouterTransaction pushChangeHandler(ControllerChangeHandler handler) {
-        if (!mAttachedToRouter) {
-            mPushControllerChangeHandler = handler;
+        if (!attachedToRouter) {
+            pushControllerChangeHandler = handler;
             return this;
         } else {
             throw new RuntimeException(getClass().getSimpleName() + "s can not be modified after being added to a Router.");
@@ -74,14 +74,14 @@ public class RouterTransaction {
     ControllerChangeHandler popChangeHandler() {
         ControllerChangeHandler handler = controller.getOverriddenPopHandler();
         if (handler == null) {
-            handler = mPopControllerChangeHandler;
+            handler = popControllerChangeHandler;
         }
         return handler;
     }
 
     public RouterTransaction popChangeHandler(ControllerChangeHandler handler) {
-        if (!mAttachedToRouter) {
-            mPopControllerChangeHandler = handler;
+        if (!attachedToRouter) {
+            popControllerChangeHandler = handler;
             return this;
         } else {
             throw new RuntimeException(getClass().getSimpleName() + "s can not be modified after being added to a Router.");
@@ -96,15 +96,15 @@ public class RouterTransaction {
 
         bundle.putBundle(KEY_VIEW_CONTROLLER_BUNDLE, controller.saveInstanceState());
 
-        if (mPushControllerChangeHandler != null) {
-            bundle.putBundle(KEY_PUSH_TRANSITION, mPushControllerChangeHandler.toBundle());
+        if (pushControllerChangeHandler != null) {
+            bundle.putBundle(KEY_PUSH_TRANSITION, pushControllerChangeHandler.toBundle());
         }
-        if (mPopControllerChangeHandler != null) {
-            bundle.putBundle(KEY_POP_TRANSITION, mPopControllerChangeHandler.toBundle());
+        if (popControllerChangeHandler != null) {
+            bundle.putBundle(KEY_POP_TRANSITION, popControllerChangeHandler.toBundle());
         }
 
         bundle.putString(KEY_TAG, tag);
-        bundle.putBoolean(KEY_ATTACHED_TO_ROUTER, mAttachedToRouter);
+        bundle.putBoolean(KEY_ATTACHED_TO_ROUTER, attachedToRouter);
 
         return bundle;
     }

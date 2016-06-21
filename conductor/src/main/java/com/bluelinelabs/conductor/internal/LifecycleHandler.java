@@ -30,14 +30,14 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     private static final String KEY_PERMISSION_REQUEST_CODES = "LifecycleHandler.permissionRequests";
     private static final String KEY_ACTIVITY_REQUEST_CODES = "LifecycleHandler.activityRequests";
 
-    private Activity mActivity;
-    private boolean mHasRegisteredCallbacks;
-    private boolean mDestroyed;
+    private Activity activity;
+    private boolean hasRegisteredCallbacks;
+    private boolean destroyed;
 
-    private SparseArray<String> mPermissionRequestMap = new SparseArray<>();
-    private SparseArray<String> mActivityRequestMap = new SparseArray<>();
+    private SparseArray<String> permissionRequestMap = new SparseArray<>();
+    private SparseArray<String> activityRequestMap = new SparseArray<>();
 
-    private final Map<Integer, ActivityHostedRouter> mRouterMap = new HashMap<>();
+    private final Map<Integer, ActivityHostedRouter> routerMap = new HashMap<>();
 
     public LifecycleHandler() {
         setRetainInstance(true);
@@ -63,7 +63,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     public Router getRouter(ViewGroup container, Bundle savedInstanceState) {
-        ActivityHostedRouter router = mRouterMap.get(getRouterHashKey(container));
+        ActivityHostedRouter router = routerMap.get(getRouterHashKey(container));
         if (router == null) {
             router = new ActivityHostedRouter();
             router.setHost(this, container);
@@ -71,7 +71,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
             if (savedInstanceState != null) {
                 router.restoreInstanceState(savedInstanceState);
             }
-            mRouterMap.put(getRouterHashKey(container), router);
+            routerMap.put(getRouterHashKey(container), router);
         } else {
             router.setHost(this, container);
         }
@@ -80,11 +80,11 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     public List<Router> getRouters() {
-        return new ArrayList<Router>(mRouterMap.values());
+        return new ArrayList<Router>(routerMap.values());
     }
 
     public Activity getLifecycleActivity() {
-        return mActivity;
+        return activity;
     }
 
     private static int getRouterHashKey(ViewGroup viewGroup) {
@@ -92,10 +92,10 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     private void registerActivityListener(Activity activity) {
-        mActivity = activity;
+        this.activity = activity;
 
-        if (!mHasRegisteredCallbacks) {
-            mHasRegisteredCallbacks = true;
+        if (!hasRegisteredCallbacks) {
+            hasRegisteredCallbacks = true;
             activity.getApplication().registerActivityLifecycleCallbacks(this);
         }
     }
@@ -106,10 +106,10 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
         if (savedInstanceState != null) {
             StringSparseArrayParceler permissionParcel = savedInstanceState.getParcelable(KEY_PERMISSION_REQUEST_CODES);
-            mPermissionRequestMap = permissionParcel != null ? permissionParcel.getStringSparseArray() : null;
+            permissionRequestMap = permissionParcel != null ? permissionParcel.getStringSparseArray() : null;
 
             StringSparseArrayParceler activityParcel = savedInstanceState.getParcelable(KEY_ACTIVITY_REQUEST_CODES);
-            mActivityRequestMap = activityParcel != null ? activityParcel.getStringSparseArray() : null;
+            activityRequestMap = activityParcel != null ? activityParcel.getStringSparseArray() : null;
         }
     }
 
@@ -117,18 +117,18 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putParcelable(KEY_PERMISSION_REQUEST_CODES, new StringSparseArrayParceler(mPermissionRequestMap));
-        outState.putParcelable(KEY_ACTIVITY_REQUEST_CODES, new StringSparseArrayParceler(mActivityRequestMap));
+        outState.putParcelable(KEY_PERMISSION_REQUEST_CODES, new StringSparseArrayParceler(permissionRequestMap));
+        outState.putParcelable(KEY_ACTIVITY_REQUEST_CODES, new StringSparseArrayParceler(activityRequestMap));
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        if (mActivity != null) {
-            mActivity.getApplication().unregisterActivityLifecycleCallbacks(this);
+        if (activity != null) {
+            activity.getApplication().unregisterActivityLifecycleCallbacks(this);
             destroyRouters();
-            mActivity = null;
+            activity = null;
         }
     }
 
@@ -136,13 +136,13 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        mDestroyed = false;
+        destroyed = false;
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mDestroyed = false;
+        destroyed = false;
     }
 
     @Override
@@ -153,12 +153,12 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     private void destroyRouters() {
-        if (!mDestroyed) {
-            mDestroyed = true;
+        if (!destroyed) {
+            destroyed = true;
 
-            if (mActivity != null) {
-                for (Router router : mRouterMap.values()) {
-                    router.onActivityDestroyed(mActivity);
+            if (activity != null) {
+                for (Router router : routerMap.values()) {
+                    router.onActivityDestroyed(activity);
                 }
             }
         }
@@ -168,9 +168,9 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        String instanceId = mActivityRequestMap.get(requestCode);
+        String instanceId = activityRequestMap.get(requestCode);
         if (instanceId != null) {
-            for (Router router : mRouterMap.values()) {
+            for (Router router : routerMap.values()) {
                 router.onActivityResult(instanceId, requestCode, resultCode, data);
             }
         }
@@ -180,9 +180,9 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        String instanceId = mPermissionRequestMap.get(requestCode);
+        String instanceId = permissionRequestMap.get(requestCode);
         if (instanceId != null) {
-            for (Router router : mRouterMap.values()) {
+            for (Router router : routerMap.values()) {
                 router.onRequestPermissionsResult(instanceId, requestCode, permissions, grantResults);
             }
         }
@@ -190,7 +190,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @Override
     public boolean shouldShowRequestPermissionRationale(@NonNull String permission) {
-        for (Router router : mRouterMap.values()) {
+        for (Router router : routerMap.values()) {
             Boolean handled = router.handleRequestedPermission(permission);
             if (handled != null) {
                 return handled;
@@ -203,7 +203,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
-        for (Router router : mRouterMap.values()) {
+        for (Router router : routerMap.values()) {
             router.onCreateOptionsMenu(menu, inflater);
         }
     }
@@ -212,14 +212,14 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
 
-        for (Router router : mRouterMap.values()) {
+        for (Router router : routerMap.values()) {
             router.onPrepareOptionsMenu(menu);
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        for (Router router : mRouterMap.values()) {
+        for (Router router : routerMap.values()) {
             if (router.onOptionsItemSelected(item)) {
                 return true;
             }
@@ -229,13 +229,13 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     public void registerForActivityResult(String instanceId, int requestCode) {
-        mActivityRequestMap.put(requestCode, instanceId);
+        activityRequestMap.put(requestCode, instanceId);
     }
 
     public void unregisterForActivityResults(String instanceId) {
-        for (int i = mActivityRequestMap.size() - 1; i >= 0; i--) {
-            if (instanceId.equals(mActivityRequestMap.get(mActivityRequestMap.keyAt(i)))) {
-                mActivityRequestMap.removeAt(i);
+        for (int i = activityRequestMap.size() - 1; i >= 0; i--) {
+            if (instanceId.equals(activityRequestMap.get(activityRequestMap.keyAt(i)))) {
+                activityRequestMap.removeAt(i);
             }
         }
     }
@@ -252,21 +252,21 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @TargetApi(Build.VERSION_CODES.M)
     public void requestPermissions(String instanceId, String[] permissions, int requestCode) {
-        mPermissionRequestMap.put(requestCode, instanceId);
+        permissionRequestMap.put(requestCode, instanceId);
         requestPermissions(permissions, requestCode);
     }
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        if (mActivity == null && findInActivity(activity) == LifecycleHandler.this) {
-            mActivity = activity;
+        if (this.activity == null && findInActivity(activity) == LifecycleHandler.this) {
+            this.activity = activity;
         }
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-        if (mActivity == activity) {
-            for (Router router : mRouterMap.values()) {
+        if (this.activity == activity) {
+            for (Router router : routerMap.values()) {
                 router.onActivityStarted(activity);
             }
         }
@@ -274,8 +274,8 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @Override
     public void onActivityResumed(Activity activity) {
-        if (mActivity == activity) {
-            for (Router router : mRouterMap.values()) {
+        if (this.activity == activity) {
+            for (Router router : routerMap.values()) {
                 router.onActivityResumed(activity);
             }
         }
@@ -283,8 +283,8 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @Override
     public void onActivityPaused(Activity activity) {
-        if (mActivity == activity) {
-            for (Router router : mRouterMap.values()) {
+        if (this.activity == activity) {
+            for (Router router : routerMap.values()) {
                 router.onActivityPaused(activity);
             }
         }
@@ -292,8 +292,8 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @Override
     public void onActivityStopped(Activity activity) {
-        if (mActivity == activity) {
-            for (Router router : mRouterMap.values()) {
+        if (this.activity == activity) {
+            for (Router router : routerMap.values()) {
                 router.onActivityStopped(activity);
             }
         }
@@ -301,8 +301,8 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        if (mActivity == activity) {
-            for (Router router : mRouterMap.values()) {
+        if (this.activity == activity) {
+            for (Router router : routerMap.values()) {
                 router.saveInstanceState(outState);
             }
         }

@@ -14,7 +14,7 @@ import butterknife.BindViews;
 
 public class MultipleChildRouterController extends BaseController {
 
-    @BindViews({R.id.container_0, R.id.container_1, R.id.container_2}) ViewGroup[] mChildContainers;
+    @BindViews({R.id.container_0, R.id.container_1, R.id.container_2}) ViewGroup[] childContainers;
 
     @Override
     protected View inflateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
@@ -25,7 +25,7 @@ public class MultipleChildRouterController extends BaseController {
     protected void onViewBound(@NonNull View view) {
         super.onViewBound(view);
 
-        for (ViewGroup childContainer : mChildContainers) {
+        for (ViewGroup childContainer : childContainers) {
             Router childRouter = getChildRouter(childContainer, null).setPopsLastView(false);
             if (!childRouter.hasRootController()) {
                 childRouter.setRoot(RouterTransaction.with(new NavigationDemoController(0, false)));

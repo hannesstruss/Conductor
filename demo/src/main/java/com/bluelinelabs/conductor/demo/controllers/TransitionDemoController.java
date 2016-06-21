@@ -56,11 +56,11 @@ public class TransitionDemoController extends BaseController {
         }
     }
 
-    @BindView(R.id.tv_title) TextView mTvTitle;
-    @BindView(R.id.btn_next) FloatingActionButton mBtnNext;
-    @BindView(R.id.transition_root) View mContainerView;
+    @BindView(R.id.tv_title) TextView tvTitle;
+    @BindView(R.id.btn_next) FloatingActionButton btnNext;
+    @BindView(R.id.transition_root) View containerView;
 
-    private TransitionDemo mTransitionDemo;
+    private TransitionDemo transitionDemo;
 
     public TransitionDemoController(int index) {
         this(new BundleBuilder(new Bundle())
@@ -70,13 +70,13 @@ public class TransitionDemoController extends BaseController {
 
     public TransitionDemoController(Bundle args) {
         super(args);
-        mTransitionDemo = TransitionDemo.fromIndex(args.getInt(KEY_INDEX));
+        transitionDemo = TransitionDemo.fromIndex(args.getInt(KEY_INDEX));
     }
 
     @NonNull
     @Override
     protected View inflateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
-        return inflater.inflate(mTransitionDemo.layoutId, container, false);
+        return inflater.inflate(transitionDemo.layoutId, container, false);
     }
 
     @Override
@@ -84,11 +84,11 @@ public class TransitionDemoController extends BaseController {
         super.onViewBound(view);
 
         View bgView = ButterKnife.findById(view, R.id.bg_view);
-        if (mTransitionDemo.colorId != 0 && bgView != null) {
-            bgView.setBackgroundColor(ContextCompat.getColor(getActivity(), mTransitionDemo.colorId));
+        if (transitionDemo.colorId != 0 && bgView != null) {
+            bgView.setBackgroundColor(ContextCompat.getColor(getActivity(), transitionDemo.colorId));
         }
 
-        final int nextIndex = mTransitionDemo.ordinal() + 1;
+        final int nextIndex = transitionDemo.ordinal() + 1;
         int buttonColor = 0;
         if (nextIndex < TransitionDemo.values().length) {
             buttonColor = TransitionDemo.fromIndex(nextIndex).colorId;
@@ -97,8 +97,8 @@ public class TransitionDemoController extends BaseController {
             buttonColor = TransitionDemo.fromIndex(0).colorId;
         }
 
-        mBtnNext.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getActivity(), buttonColor)));
-        mTvTitle.setText(mTransitionDemo.title);
+        btnNext.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getActivity(), buttonColor)));
+        tvTitle.setText(transitionDemo.title);
     }
 
     @Override
@@ -107,7 +107,7 @@ public class TransitionDemoController extends BaseController {
     }
 
     @OnClick(R.id.btn_next) void onNextClicked() {
-        final int nextIndex = mTransitionDemo.ordinal() + 1;
+        final int nextIndex = transitionDemo.ordinal() + 1;
 
         if (nextIndex < TransitionDemo.values().length) {
             getRouter().pushController(getRouterTransaction(nextIndex, this));
@@ -117,12 +117,12 @@ public class TransitionDemoController extends BaseController {
     }
 
     public ControllerChangeHandler getChangeHandler(Controller from) {
-        switch (mTransitionDemo) {
+        switch (transitionDemo) {
             case VERTICAL:
                 return new VerticalChangeHandler();
             case CIRCULAR:
                 TransitionDemoController demoController = (TransitionDemoController)from;
-                return new CircularRevealChangeHandlerCompat(demoController.mBtnNext, demoController.mContainerView);
+                return new CircularRevealChangeHandlerCompat(demoController.btnNext, demoController.containerView);
             case FADE:
                 return new FadeChangeHandler();
             case FLIP:

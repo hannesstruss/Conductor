@@ -18,7 +18,7 @@ public class OverlayController extends BaseController {
 
     private static final String KEY_TEXT = "OverlayController.text";
 
-    @BindView(R.id.text_view) TextView mTextView;
+    @BindView(R.id.text_view) TextView textView;
 
     public OverlayController(CharSequence text) {
         this(new BundleBuilder(new Bundle())
@@ -39,8 +39,8 @@ public class OverlayController extends BaseController {
     @Override
     public void onViewBound(@NonNull View view) {
         super.onViewBound(view);
-        mTextView.setText(getArgs().getCharSequence(KEY_TEXT));
-        mTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        textView.setText(getArgs().getCharSequence(KEY_TEXT));
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
 }

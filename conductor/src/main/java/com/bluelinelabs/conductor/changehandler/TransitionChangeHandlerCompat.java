@@ -20,8 +20,8 @@ public class TransitionChangeHandlerCompat extends ControllerChangeHandler {
     private static final String KEY_TRANSITION_HANDLER_STATE = "TransitionChangeHandlerCompat.transitionChangeHandler.state";
     private static final String KEY_FALLBACK_HANDLER_STATE = "TransitionChangeHandlerCompat.fallbackChangeHandler.state";
 
-    private TransitionChangeHandler mTransitionChangeHandler;
-    private ControllerChangeHandler mFallbackChangeHandler;
+    private TransitionChangeHandler transitionChangeHandler;
+    private ControllerChangeHandler fallbackChangeHandler;
 
     public TransitionChangeHandlerCompat() { }
 
@@ -33,16 +33,16 @@ public class TransitionChangeHandlerCompat extends ControllerChangeHandler {
      * @param fallbackChangeHandler The change handler that will be used on APIs below 21
      */
     public TransitionChangeHandlerCompat(TransitionChangeHandler transitionChangeHandler, ControllerChangeHandler fallbackChangeHandler) {
-        mTransitionChangeHandler = transitionChangeHandler;
-        mFallbackChangeHandler = fallbackChangeHandler;
+        this.transitionChangeHandler = transitionChangeHandler;
+        this.fallbackChangeHandler = fallbackChangeHandler;
     }
 
     @Override
     public void performChange(@NonNull final ViewGroup container, View from, View to, boolean isPush, @NonNull final ControllerChangeCompletedListener changeListener) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mTransitionChangeHandler.performChange(container, from, to, isPush, changeListener);
+            transitionChangeHandler.performChange(container, from, to, isPush, changeListener);
         } else {
-            mFallbackChangeHandler.performChange(container, from, to, isPush, changeListener);
+            fallbackChangeHandler.performChange(container, from, to, isPush, changeListener);
         }
     }
 
@@ -50,15 +50,15 @@ public class TransitionChangeHandlerCompat extends ControllerChangeHandler {
     public void saveToBundle(@NonNull Bundle bundle) {
         super.saveToBundle(bundle);
 
-        bundle.putString(KEY_TRANSITION_HANDLER_CLASS, mTransitionChangeHandler.getClass().getName());
-        bundle.putString(KEY_FALLBACK_HANDLER_CLASS, mFallbackChangeHandler.getClass().getName());
+        bundle.putString(KEY_TRANSITION_HANDLER_CLASS, transitionChangeHandler.getClass().getName());
+        bundle.putString(KEY_FALLBACK_HANDLER_CLASS, fallbackChangeHandler.getClass().getName());
 
         Bundle transitionBundle = new Bundle();
-        mTransitionChangeHandler.saveToBundle(transitionBundle);
+        transitionChangeHandler.saveToBundle(transitionBundle);
         bundle.putBundle(KEY_TRANSITION_HANDLER_STATE, transitionBundle);
 
         Bundle fallbackBundle = new Bundle();
-        mFallbackChangeHandler.saveToBundle(fallbackBundle);
+        fallbackChangeHandler.saveToBundle(fallbackBundle);
         bundle.putBundle(KEY_FALLBACK_HANDLER_STATE, fallbackBundle);
     }
 
@@ -67,14 +67,14 @@ public class TransitionChangeHandlerCompat extends ControllerChangeHandler {
         super.restoreFromBundle(bundle);
 
         String transitionClassName = bundle.getString(KEY_TRANSITION_HANDLER_CLASS);
-        mTransitionChangeHandler = ClassUtils.newInstance(transitionClassName);
+        transitionChangeHandler = ClassUtils.newInstance(transitionClassName);
         //noinspection ConstantConditions
-        mTransitionChangeHandler.restoreFromBundle(bundle.getBundle(KEY_TRANSITION_HANDLER_STATE));
+        transitionChangeHandler.restoreFromBundle(bundle.getBundle(KEY_TRANSITION_HANDLER_STATE));
 
         String fallbackClassName = bundle.getString(KEY_FALLBACK_HANDLER_CLASS);
-        mFallbackChangeHandler = ClassUtils.newInstance(fallbackClassName);
+        fallbackChangeHandler = ClassUtils.newInstance(fallbackClassName);
         //noinspection ConstantConditions
-        mFallbackChangeHandler.restoreFromBundle(bundle.getBundle(KEY_FALLBACK_HANDLER_STATE));
+        fallbackChangeHandler.restoreFromBundle(bundle.getBundle(KEY_FALLBACK_HANDLER_STATE));
     }
 
 }

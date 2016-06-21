@@ -56,8 +56,8 @@ public class HomeController extends BaseController {
         }
     }
 
-    @BindView(R.id.recycler_view) RecyclerView mRecyclerView;
-    @BindView(R.id.overlay_root) ViewGroup mOverlayRoot;
+    @BindView(R.id.recycler_view) RecyclerView recyclerView;
+    @BindView(R.id.overlay_root) ViewGroup overlayRoot;
 
     public HomeController() {
         setHasOptionsMenu(true);
@@ -73,9 +73,9 @@ public class HomeController extends BaseController {
     protected void onViewBound(@NonNull View view) {
         super.onViewBound(view);
 
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
-        mRecyclerView.setAdapter(new HomeAdapter(LayoutInflater.from(view.getContext()), HomeDemoModel.values()));
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
+        recyclerView.setAdapter(new HomeAdapter(LayoutInflater.from(view.getContext()), HomeDemoModel.values()));
     }
 
     @Override
@@ -115,7 +115,7 @@ public class HomeController extends BaseController {
             content.append("\n\n");
             content.append(link);
 
-            getChildRouter(mOverlayRoot, null)
+            getChildRouter(overlayRoot, null)
                     .setPopsLastView(true)
                     .setRoot(RouterTransaction.with(new OverlayController(content))
                             .pushChangeHandler(new FadeChangeHandler())
@@ -159,7 +159,7 @@ public class HomeController extends BaseController {
                         .popChangeHandler(new FadeChangeHandler()));
                 break;
             case OVERLAY:
-                getChildRouter(mOverlayRoot, null)
+                getChildRouter(overlayRoot, null)
                         .setPopsLastView(true)
                         .setRoot(RouterTransaction.with(new OverlayController("I'm an overlay!"))
                                 .pushChangeHandler(new FadeChangeHandler())
@@ -190,34 +190,34 @@ public class HomeController extends BaseController {
 
     class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.ViewHolder> {
 
-        private final LayoutInflater mInflater;
-        private final HomeDemoModel[] mItems;
+        private final LayoutInflater inflater;
+        private final HomeDemoModel[] items;
 
         public HomeAdapter(LayoutInflater inflater, HomeDemoModel[] items) {
-            mInflater = inflater;
-            mItems = items;
+            this.inflater = inflater;
+            this.items = items;
         }
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new ViewHolder(mInflater.inflate(R.layout.row_home, parent, false));
+            return new ViewHolder(inflater.inflate(R.layout.row_home, parent, false));
         }
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.bind(mItems[position]);
+            holder.bind(items[position]);
         }
 
         @Override
         public int getItemCount() {
-            return mItems.length;
+            return items.length;
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
 
-            @BindView(R.id.tv_title) TextView mTvTitle;
-            @BindView(R.id.img_dot) ImageView mImgDot;
-            private HomeDemoModel mModel;
+            @BindView(R.id.tv_title) TextView tvTitle;
+            @BindView(R.id.img_dot) ImageView imgDot;
+            private HomeDemoModel model;
 
             public ViewHolder(View itemView) {
                 super(itemView);
@@ -225,14 +225,14 @@ public class HomeController extends BaseController {
             }
 
             void bind(HomeDemoModel item) {
-                mModel = item;
-                mTvTitle.setText(item.title);
-                mImgDot.getDrawable().setColorFilter(ContextCompat.getColor(getActivity(), item.color), Mode.SRC_ATOP);
+                model = item;
+                tvTitle.setText(item.title);
+                imgDot.getDrawable().setColorFilter(ContextCompat.getColor(getActivity(), item.color), Mode.SRC_ATOP);
             }
 
             @OnClick(R.id.row_root)
             void onRowClick() {
-                onModelRowClick(mModel);
+                onModelRowClick(model);
             }
 
         }
