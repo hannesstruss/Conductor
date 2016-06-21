@@ -9,6 +9,7 @@ import android.transition.TransitionManager;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 
 /**
@@ -16,6 +17,8 @@ import com.bluelinelabs.conductor.ControllerChangeHandler;
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public abstract class TransitionChangeHandler extends ControllerChangeHandler {
+
+    private boolean canceled;
 
     /**
      * Should be overridden to return the Transition to use while replacing Views.
@@ -29,7 +32,19 @@ public abstract class TransitionChangeHandler extends ControllerChangeHandler {
     protected abstract Transition getTransition(@NonNull ViewGroup container, View from, View to, boolean isPush);
 
     @Override
+    public void onAbortPush(@NonNull ControllerChangeHandler newHandler, Controller newTop) {
+        super.onAbortPush(newHandler, newTop);
+
+        canceled = true;
+    }
+
+    @Override
     public void performChange(@NonNull final ViewGroup container, View from, View to, boolean isPush, @NonNull final ControllerChangeCompletedListener changeListener) {
+        if (canceled) {
+            changeListener.onChangeCompleted();
+            return;
+        }
+
         Transition transition = getTransition(container, from, to, isPush);
         transition.addListener(new TransitionListener() {
             @Override

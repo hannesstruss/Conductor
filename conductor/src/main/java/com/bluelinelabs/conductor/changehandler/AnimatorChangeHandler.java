@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
+import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 
 /**
@@ -22,6 +23,8 @@ public abstract class AnimatorChangeHandler extends ControllerChangeHandler {
 
     private long animationDuration;
     private boolean removesFromViewOnPush;
+    private boolean canceled;
+    private Animator animator;
 
     public AnimatorChangeHandler() {
         this(DEFAULT_ANIMATION_DURATION, true);
@@ -52,6 +55,16 @@ public abstract class AnimatorChangeHandler extends ControllerChangeHandler {
         super.restoreFromBundle(bundle);
         animationDuration = bundle.getLong(KEY_DURATION);
         removesFromViewOnPush = bundle.getBoolean(KEY_REMOVES_FROM_ON_PUSH);
+    }
+
+    @Override
+    public void onAbortPush(@NonNull ControllerChangeHandler newHandler, Controller newTop) {
+        super.onAbortPush(newHandler, newTop);
+
+        canceled = true;
+        if (animator != null) {
+            animator.cancel();
+        }
     }
 
     public long getAnimationDuration() {
@@ -112,7 +125,12 @@ public abstract class AnimatorChangeHandler extends ControllerChangeHandler {
     }
 
     private void performAnimation(@NonNull final ViewGroup container, final View from, View to, final boolean isPush, final boolean toAddedToContainer, @NonNull final ControllerChangeCompletedListener changeListener) {
-        Animator animator = getAnimator(container, from, to, isPush, toAddedToContainer);
+        if (canceled) {
+            changeListener.onChangeCompleted();
+            return;
+        }
+
+        animator = getAnimator(container, from, to, isPush, toAddedToContainer);
 
         if (animationDuration > 0) {
             animator.setDuration(animationDuration);

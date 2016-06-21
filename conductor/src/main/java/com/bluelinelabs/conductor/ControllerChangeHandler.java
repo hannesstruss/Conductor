@@ -9,7 +9,9 @@ import com.bluelinelabs.conductor.changehandler.SimpleSwapChangeHandler;
 import com.bluelinelabs.conductor.internal.ClassUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * ControllerChangeHandlers are responsible for swapping the View for one Controller to the View
@@ -20,6 +22,8 @@ public abstract class ControllerChangeHandler {
 
     private static final String KEY_CLASS_NAME = "ControllerChangeHandler.className";
     private static final String KEY_SAVED_STATE = "ControllerChangeHandler.savedState";
+
+    private static final Map<String, ControllerChangeHandler> inProgressPushHandlers = new HashMap<>();
 
     /**
      * Responsible for swapping Views from one Controller to another.
@@ -49,6 +53,15 @@ public abstract class ControllerChangeHandler {
      * @param bundle The bundle that has data to be restored
      */
     public void restoreFromBundle(@NonNull Bundle bundle) { }
+
+    /**
+     * Will be called on change handlers that push a controller if the controller being pushed is
+     * popped before it has completed.
+     *
+     * @param newHandler the change handler that has caused this push to be aborted
+     * @param newTop the controller that will now be at the top of the backstack
+     */
+    public void onAbortPush(@NonNull ControllerChangeHandler newHandler, Controller newTop) { }
 
     final Bundle toBundle() {
         Bundle bundle = new Bundle();
@@ -87,6 +100,18 @@ public abstract class ControllerChangeHandler {
 
     public static void executeChange(final Controller to, final Controller from, final boolean isPush, final ViewGroup container, final ControllerChangeHandler inHandler, @NonNull final List<ControllerChangeListener> listeners) {
         if (container != null) {
+            final ControllerChangeHandler handler = inHandler != null ? inHandler : new SimpleSwapChangeHandler();
+
+            if (isPush) {
+                inProgressPushHandlers.put(to.getInstanceId(), handler);
+            } else if (from != null) {
+                ControllerChangeHandler handlerForPush = inProgressPushHandlers.get(from.getInstanceId());
+                if (handlerForPush != null) {
+                    handlerForPush.onAbortPush(handler, to);
+                    inProgressPushHandlers.remove(from.getInstanceId());
+                }
+            }
+
             for (ControllerChangeListener listener : listeners) {
                 listener.onChangeStarted(to, from, isPush, container, inHandler);
             }
@@ -94,7 +119,6 @@ public abstract class ControllerChangeHandler {
             final ControllerChangeType toChangeType = isPush ? ControllerChangeType.PUSH_ENTER : ControllerChangeType.POP_ENTER;
             final ControllerChangeType fromChangeType = isPush ? ControllerChangeType.PUSH_EXIT : ControllerChangeType.POP_EXIT;
 
-            final ControllerChangeHandler handler = inHandler != null ? inHandler : new SimpleSwapChangeHandler();
             final View toView;
             if (to != null) {
                 toView = to.inflate(container);
@@ -114,11 +138,13 @@ public abstract class ControllerChangeHandler {
             handler.performChange(container, fromView, toView, isPush, new ControllerChangeCompletedListener() {
                 @Override
                 public void onChangeCompleted() {
+
                     if (from != null) {
                         from.changeEnded(handler, fromChangeType);
                     }
 
                     if (to != null) {
+                        inProgressPushHandlers.remove(to.getInstanceId());
                         to.changeEnded(handler, toChangeType);
                     }
 
