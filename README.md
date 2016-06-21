@@ -20,14 +20,14 @@ Conductor is architecture-agnostic and does not try to force any design decision
 ## Installation
 
 ```gradle
-compile 'com.bluelinelabs:conductor:2.0.0-rc4'
+compile 'com.bluelinelabs:conductor:2.0.0-rc5'
 
 // If you want the components that go along with
 // Android's support libraries (currently just a PagerAdapter):
-compile 'com.bluelinelabs:conductor-support:2.0.0-rc4'
+compile 'com.bluelinelabs:conductor-support:2.0.0-rc5'
 
 // If you want RxJava/RxAndroid lifecycle support:
-compile 'com.bluelinelabs:conductor-rxlifecycle:2.0.0-rc4'
+compile 'com.bluelinelabs:conductor-rxlifecycle:2.0.0-rc5'
 ```
 
 ## Components to Know
@@ -46,7 +46,7 @@ __ControllerTransaction__ | Transactions are used to define data about adding Co
 ```java
 public class MainActivity extends Activity {
 
-    private Router mRouter;
+    private Router router;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,17 +54,17 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
 
-        ViewGroup container = (ViewGroup)findViewById(R.id.controller_container)
+        ViewGroup container = (ViewGroup)findViewById(R.id.controller_container);
 
-        mRouter = Conductor.attachRouter(this, container, savedInstanceState);
-        if (!mRouter.hasRootController()) {
-            mRouter.setRoot(RouterTransaction.with(new HomeController()));
+        router = Conductor.attachRouter(this, container, savedInstanceState);
+        if (!router.hasRootController()) {
+            router.setRoot(RouterTransaction.with(new HomeController()));
         }
     }
 
     @Override
     public void onBackPressed() {
-        if (!mRouter.handleBack()) {
+        if (!router.handleBack()) {
             super.onBackPressed();
         }
     }
