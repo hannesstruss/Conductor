@@ -41,7 +41,11 @@ public class RouterTransaction {
         attachedToRouter = true;
     }
 
-    String tag() {
+    public Controller controller() {
+        return controller;
+    }
+
+    public String tag() {
         return tag;
     }
 
@@ -54,7 +58,7 @@ public class RouterTransaction {
         }
     }
 
-    ControllerChangeHandler pushChangeHandler() {
+    public ControllerChangeHandler pushChangeHandler() {
         ControllerChangeHandler handler = controller.getOverriddenPushHandler();
         if (handler == null) {
             handler = pushControllerChangeHandler;
@@ -71,7 +75,7 @@ public class RouterTransaction {
         }
     }
 
-    ControllerChangeHandler popChangeHandler() {
+    public ControllerChangeHandler popChangeHandler() {
         ControllerChangeHandler handler = controller.getOverriddenPopHandler();
         if (handler == null) {
             handler = popControllerChangeHandler;
