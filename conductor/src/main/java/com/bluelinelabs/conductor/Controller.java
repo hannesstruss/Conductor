@@ -630,6 +630,10 @@ public abstract class Controller {
 
     final void prepareForHostDetach() {
         needsAttach = needsAttach || attached;
+
+        for (ControllerHostedRouter router : childRouters) {
+            router.prepareForHostDetach();
+        }
     }
 
     final boolean getNeedsAttach() {
@@ -1007,6 +1011,10 @@ public abstract class Controller {
     final void setDetachFrozen(boolean frozen) {
         if (isDetachFrozen != frozen) {
             isDetachFrozen = frozen;
+
+            for (ControllerHostedRouter router : childRouters) {
+                router.setDetachFrozen(frozen);
+            }
 
             if (!frozen && view != null && viewWasDetached) {
                 detach(view, false);
