@@ -11,6 +11,12 @@ import com.bluelinelabs.conductor.RouterTransaction;
 import com.bluelinelabs.conductor.changehandler.HorizontalChangeHandler;
 
 public class TabController extends Controller {
+  static final int[] COLORS = {
+      0xFF000099,
+      0xFF009900,
+      0xFF990000,
+      0xFF0099FF
+  };
   private static final String EXTRA_COLOR = "EXTRA_COLOR";
 
   public TabController(int color) {
@@ -31,12 +37,13 @@ public class TabController extends Controller {
   protected View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
     View view = inflater.inflate(R.layout.controller_tab, container, false);
 
-    view.setBackgroundColor(getArgs().getInt(EXTRA_COLOR));
+    final int color = getArgs().getInt(EXTRA_COLOR);
+    view.setBackgroundColor(COLORS[color % COLORS.length]);
 
     view.findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        getParentController().getParentController().getRouter()
-            .pushController(RouterTransaction.with(new OtherController())
+        getRouter()
+            .pushController(RouterTransaction.with(new TabController(color + 1))
                 .pushChangeHandler(new HorizontalChangeHandler())
                 .popChangeHandler(new HorizontalChangeHandler()));
       }
