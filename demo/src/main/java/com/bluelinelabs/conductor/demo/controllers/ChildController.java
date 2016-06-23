@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bluelinelabs.conductor.RouterTransaction;
+import com.bluelinelabs.conductor.changehandler.HorizontalChangeHandler;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 import com.bluelinelabs.conductor.demo.util.BundleBuilder;
@@ -37,7 +39,15 @@ public class ChildController extends BaseController {
     @NonNull
     @Override
     protected View inflateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
-        return inflater.inflate(R.layout.controller_child, container, false);
+        View view = inflater.inflate(R.layout.controller_child, container, false);
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                getParentController().getRouter().pushController(RouterTransaction.with(new HomeController())
+                .pushChangeHandler(new HorizontalChangeHandler())
+                .popChangeHandler(new HorizontalChangeHandler()));
+            }
+        });
+        return view;
     }
 
     @Override
