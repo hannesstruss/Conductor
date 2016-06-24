@@ -9,6 +9,7 @@ import android.widget.FrameLayout;
 import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerChangeType;
+import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
 
 public class MiddleController extends Controller {
@@ -30,7 +31,10 @@ public class MiddleController extends Controller {
                                @NonNull ControllerChangeType changeType) {
     super.onChangeEnded(changeHandler, changeType);
     if (changeType == ControllerChangeType.PUSH_ENTER) {
-      getChildRouter(container, null).pushController(RouterTransaction.with(new TabController(0)));
+      Router childRouter = getChildRouter(container, null);
+      if (!childRouter.hasRootController()) {
+        childRouter.pushController(RouterTransaction.with(new TabController(0)));
+      }
     }
   }
 }

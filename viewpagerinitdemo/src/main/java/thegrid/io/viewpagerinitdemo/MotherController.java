@@ -30,7 +30,9 @@ public class MotherController extends Controller {
 
     if (changeType == ControllerChangeType.PUSH_ENTER) {
       Router childRouter = getChildRouter(container, null);
-        childRouter.pushController(RouterTransaction.with(new TabController(0)));
+      if (!childRouter.hasRootController()) {
+        childRouter.pushController(RouterTransaction.with(new MiddleController()));
+      }
     }
   }
 }
