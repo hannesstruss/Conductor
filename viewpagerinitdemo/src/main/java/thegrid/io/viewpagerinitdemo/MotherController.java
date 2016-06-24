@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerChangeType;
+import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
 
 public class MotherController extends Controller {
@@ -28,7 +29,8 @@ public class MotherController extends Controller {
     super.onChangeEnded(changeHandler, changeType);
 
     if (changeType == ControllerChangeType.PUSH_ENTER) {
-      getChildRouter(container, null).pushController(RouterTransaction.with(new MiddleController()));
+      Router childRouter = getChildRouter(container, null);
+        childRouter.pushController(RouterTransaction.with(new TabController(0)));
     }
   }
 }
