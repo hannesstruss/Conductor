@@ -1,6 +1,7 @@
 package thegrid.io.viewpagerinitdemo;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,8 +34,16 @@ public class MiddleController extends Controller {
     if (changeType == ControllerChangeType.PUSH_ENTER) {
       Router childRouter = getChildRouter(container, null);
       if (!childRouter.hasRootController()) {
-        childRouter.pushController(RouterTransaction.with(new TabController(0)));
+        childRouter.pushController(RouterTransaction.with(new TabController(TabController.newIndex())));
       }
     }
+  }
+
+  @Override public boolean handleBack() {
+    Log.d("Test", String.format("MiddleController before: %s", getChildRouter(container, null).getBackstackSize()));
+    boolean result = super.handleBack();
+    Log.d("Test", String.format("MiddleController after: %s", getChildRouter(container, null).getBackstackSize()));
+    Log.d("Test", "Result: " + result);
+    return result;
   }
 }
