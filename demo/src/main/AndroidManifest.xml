@@ -22,9 +22,19 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <activity android:name="de.hannesstruss.refwatchdemo.ChildRouterRefWatchActivity"
+                  android:label="Cond. ChildRefWatch"
+                  android:launchMode="singleTask"
+                  >
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
         </activity>
 
     </application>
