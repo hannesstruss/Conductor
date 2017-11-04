@@ -52,7 +52,8 @@ public class HomeController extends BaseController {
         MULTIPLE_CHILD_ROUTERS("Multiple Child Routers", R.color.deep_orange_300),
         MASTER_DETAIL("Master Detail", R.color.grey_300),
         DRAG_DISMISS("Drag Dismiss", R.color.lime_300),
-        EXTERNAL_MODULES("Bonus Modules", R.color.teal_300);
+        EXTERNAL_MODULES("Bonus Modules", R.color.teal_300),
+        PERMISSIONS("Permissions", R.color.cyan_300);
 
         String title;
         @ColorRes int color;
@@ -219,6 +220,10 @@ public class HomeController extends BaseController {
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler()));
                 break;
+            case PERMISSIONS:
+                getRouter().pushController(RouterTransaction.with(new PermissionController())
+                        .pushChangeHandler(new FadeChangeHandler())
+                        .popChangeHandler(new FadeChangeHandler()));
         }
     }
 

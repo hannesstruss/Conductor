@@ -84,6 +84,7 @@ public abstract class Controller {
     private ViewAttachHandler viewAttachHandler;
     private final List<ControllerHostedRouter> childRouters = new ArrayList<>();
     private final List<LifecycleListener> lifecycleListeners = new ArrayList<>();
+    private final List<PermissionResultListener> permissionResultListeners = new ArrayList<>();
     private final ArrayList<String> requestedPermissions = new ArrayList<>();
     private final ArrayList<RouterRequiringFunc> onRouterSetListeners = new ArrayList<>();
     private WeakReference<View> destroyedView;
@@ -636,6 +637,14 @@ public abstract class Controller {
         lifecycleListeners.remove(lifecycleListener);
     }
 
+    public final void addPermissionResultListener(@NonNull PermissionResultListener permissionResultListener) {
+        permissionResultListeners.add(permissionResultListener);
+    }
+
+    public final void removePermissionResultListener(@NonNull PermissionResultListener permissionResultListener) {
+        permissionResultListeners.remove(permissionResultListener);
+    }
+
     /**
      * Returns this Controller's {@link RetainViewMode}. Defaults to {@link RetainViewMode#RELEASE_DETACH}.
      */
@@ -771,6 +780,9 @@ public abstract class Controller {
 
     final void requestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         requestedPermissions.removeAll(Arrays.asList(permissions));
+        for (PermissionResultListener listener : permissionResultListeners) {
+            listener.onRequestPermissionResult(requestCode, permissions, grantResults);
+        }
         onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
@@ -1359,6 +1371,10 @@ public abstract class Controller {
         public void onSaveViewState(@NonNull Controller controller, @NonNull Bundle outState) { }
         public void onRestoreViewState(@NonNull Controller controller, @NonNull Bundle savedViewState) { }
 
+    }
+
+    public static abstract class PermissionResultListener {
+        public void onRequestPermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) { }
     }
 
 }
